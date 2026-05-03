@@ -34,4 +34,4 @@ Commands, tests, or dry runs that prove the decision still holds.
 
 ## Index
 
-- No project ADRs yet. The harness consensus lives in `.omx/plans/ralplan-harness-mental-model.md` until durable follow-up decisions are promoted here.
+- No project ADRs yet. Promote durable tradeoffs into dated records here as they are accepted; transient planning notes belong in route pages or local workflow folders, not in this index.

@@ -1,12 +1,11 @@
 # Agent Guide — oh-my-free-models
 
-This repository is a TypeScript/Node local proxy that exposes OpenRouter free models through OpenAI-compatible and Anthropic-compatible client surfaces. Keep this file short: it is a route map, not the source of truth.
+This repository is a TypeScript/Node local proxy that exposes free models from supported providers (currently OpenRouter and NVIDIA) through OpenAI-compatible and Anthropic-compatible client surfaces. Keep this file short: it is a route map, not the source of truth.
 
 ## Start Here
 
 1. Read [`docs/index.md`](docs/index.md) to pick the right lane.
 2. Use [`README.md`](README.md) for user-facing install, configuration, proxy, and development commands.
-3. Use `.omx/plans/` and `.omx/specs/` as workflow/planning history only when the active task needs planning context; do not move or rewrite those artifacts during normal implementation.
 
 ## Common Task Routes
 

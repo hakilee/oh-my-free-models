@@ -7,7 +7,7 @@ Use this route for OpenAI-compatible client behavior, Anthropic-compatible clien
 | Surface | Endpoint | Source anchors | Tests |
 | --- | --- | --- | --- |
 | Health | `GET /health` | [src/server/create-server.ts](../src/server/create-server.ts) | `test/server.test.ts` |
-| OpenAI models | `GET /v1/models` | [src/server/create-server.ts](../src/server/create-server.ts), `src/providers` | `test/server.test.ts`, `test/openrouter.test.ts` |
+| OpenAI models | `GET /v1/models` | [src/server/create-server.ts](../src/server/create-server.ts), `src/providers` | `test/server.test.ts`, `test/openrouter.test.ts`, `test/nvidia.test.ts` |
 | OpenAI chat | `POST /v1/chat/completions` | [src/server/create-server.ts](../src/server/create-server.ts), [src/server/sse.ts](../src/server/sse.ts) | `test/server.test.ts` |
 | Anthropic messages | `POST /anthropic/v1/messages`, `POST /anthropic/messages` | [src/server/create-server.ts](../src/server/create-server.ts), [src/server/translate.ts](../src/server/translate.ts) | `test/server.test.ts`, `test/translate.test.ts` |
 

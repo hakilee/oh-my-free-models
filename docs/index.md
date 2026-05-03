@@ -17,7 +17,6 @@ This directory is the maintained route map for `oh-my-free-models`. Start here w
 - `README.md` remains the user-facing quickstart and command reference.
 - `docs/` stays compact and route-oriented.
 - `research/` stores reusable findings and decision records that are too detailed for route pages.
-- `.omx/` stores workflow history. Link it only when current work explicitly needs planning history.
 - Keep all maintained documentation in English.
 
 ## Validation
