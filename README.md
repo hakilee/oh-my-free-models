@@ -30,7 +30,7 @@ NVIDIA_API_KEY=nvapi-...
 omfm model
 ```
 
-In an interactive terminal, the command opens a lightweight model picker. It shows provider, model, context size, cached or measured latency, and probe status. The current row is marked with `▶` and highlighted; selected rows use `●` and unselected rows use `○`. Use Up/Down or j/k to move, Space to toggle, Enter to save, and q/Esc to cancel. Latency probes run in small bounded parallel batches with conservative pacing; row-level `rate-limit` responses are shown for that model and later rows continue probing, while `quota`/payment responses stop the remaining unstarted probes for that run without overwriting cached latency.
+In an interactive terminal, the command opens a lightweight model picker. It shows provider, model, context size, cached or measured latency, recommendation, and probe status. Rows are ordered by current selection, health/recommendation, cached latency, and provider catalog rank so the best known choices are easiest to review. The current row is marked with `▶` and highlighted; selected rows use `●` and unselected rows use `○`. Use Up/Down or j/k to move, Space to toggle, Enter to save, and q/Esc to cancel. Saved selections keep the displayed order, which becomes the deterministic routing fallback when no latency is known. Latency probes run in small bounded parallel batches with conservative pacing; row-level `rate-limit` responses are shown for that model and later rows continue probing, while `quota`/payment responses stop the remaining unstarted probes for that run without overwriting cached latency.
 
 When stdout is not a TTY, `omfm model` prints a static ANSI-free table and does not probe. Non-interactive modes are available:
 
@@ -101,11 +101,11 @@ Required endpoints in 0.0.1:
 ## Routing and latency
 
 - Only models selected by `omfm model` are used.
-- If a request names a selected model, `omfm` honors it.
+- If a request names a selected model, `omfm` honors it. For provider-prefixed local models, the matching upstream model id is honored too.
 - Generic/unknown requests use the selected model with the lowest locally observed latency.
 - Selected models that just hit rate-limit (HTTP 429) or quota (HTTP 402) are skipped for ~10 minutes before becoming candidates again; if every selected model is cooling, routing falls back to the full latency-ordered list so requests still proceed.
 - Successful requests update the local latency cache.
-- If no latency is known, routing falls back to deterministic selected order.
+- If no latency is known, routing falls back to deterministic selected order. The interactive picker and `omfm model --all` save that order from the recommendation-sorted display.
 - No hosted latency service is used in 0.0.1.
 
 ## 0.0.1 limitations

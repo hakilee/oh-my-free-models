@@ -97,6 +97,27 @@ describe('model TUI', () => {
     expect(output.text()).toContain('\u001b[?1049l');
   });
 
+  it('saves selected models in displayed recommendation order', async () => {
+    const input = new FakeInput();
+    const output = new FakeOutput();
+    const store = tempStore();
+    store.recordSuccess('beta/two:free', 20);
+    store.recordSuccess('alpha/one:free', 200);
+
+    const promise = runModelTui({
+      models: sampleModels,
+      selectedModelIds: ['alpha/one:free', 'beta/two:free'],
+      store,
+      apiKey: 'k',
+      stdin: input as any,
+      stdout: output as any,
+      runScheduler: async () => new Promise(() => undefined),
+    });
+
+    input.send('\r');
+    await expect(promise).resolves.toMatchObject({ saved: true, selectedModelIds: ['beta/two:free', 'alpha/one:free'] });
+  });
+
   it('can render multiple rows as probing from a parallel scheduler batch', async () => {
     const input = new FakeInput();
     const output = new FakeOutput();

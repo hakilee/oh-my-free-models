@@ -13,6 +13,8 @@ Update this page when `src/latency/*` behavior, latency tests, or model-selectio
 - Interactive probes run bounded parallel batches with conservative pacing; the probe scheduler skips models whose cooldown is still active to avoid extending it with another rate-limit response.
 - Row-level rate-limit responses do not stop later probes; quota or payment responses stop unstarted probes for that run without overwriting cached latency.
 - No hosted latency service is used in version `0.0.1`.
+- The model picker writes selected IDs in recommendation display order. That keeps the no-latency routing fallback aligned with the same local evidence users saw when saving selections.
+- Server routing resolves a selected model by local ID or provider upstream ID before latency ordering, which matters for provider-prefixed NVIDIA IDs.
 
 ## Pending research
 

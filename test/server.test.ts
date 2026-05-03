@@ -110,6 +110,114 @@ describe('local proxy server', () => {
     }
   });
 
+  it('honors selected NVIDIA models requested by upstream id', async () => {
+    const root = fs.mkdtempSync(path.join(os.tmpdir(), 'omfm-nvidia-upstream-request-'));
+    roots.push(root);
+    const store = new ConfigStore(root);
+    store.updateSelectedModelIds(['nvidia/deepseek-ai/deepseek-v3.2', 'fast:free']);
+    store.writeModelCache({
+      models: [
+        { id: 'nvidia/deepseek-ai/deepseek-v3.2', upstreamId: 'deepseek-ai/deepseek-v3.2', name: 'DeepSeek', provider: 'nvidia', source: 'nvidia' },
+        { id: 'fast:free', name: 'Fast', provider: 'test', source: 'openrouter', raw: { id: 'fast:free', pricing: { prompt: '0', completion: '0' } } },
+      ],
+      fetchedAt: new Date().toISOString(),
+    });
+    store.recordSuccess('fast:free', 1);
+    store.recordSuccess('nvidia/deepseek-ai/deepseek-v3.2', 100);
+    const seen: any[] = [];
+    const server = createOmfmServer({
+      store,
+      env: { OPENROUTER_API_KEY: 'key', NVIDIA_API_KEY: 'nvapi-key' } as NodeJS.ProcessEnv,
+      fetchImpl: (async (url, init) => {
+        seen.push({ url: String(url), body: JSON.parse(String(init?.body)) });
+        return Response.json({ id: 'chatcmpl_1', model: seen.at(-1).body.model, choices: [{ message: { role: 'assistant', content: 'ok' }, finish_reason: 'stop' }] });
+      }) as FetchLike,
+    });
+    const port = await listen(server, 0);
+    try {
+      const res = await fetch(`http://127.0.0.1:${port}/v1/chat/completions`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ model: 'deepseek-ai/deepseek-v3.2', messages: [{ role: 'user', content: 'hi' }] }) });
+      const body = await res.json() as any;
+      expect(res.status).toBe(200);
+      expect(body.model).toBe('deepseek-ai/deepseek-v3.2');
+      expect(seen).toHaveLength(1);
+      expect(seen[0].url).toContain('integrate.api.nvidia.com');
+    } finally {
+      await new Promise<void>((resolve) => server.close(() => resolve()));
+    }
+  });
+
+  it('prefers an exact selected local id before an upstream id match', async () => {
+    const root = fs.mkdtempSync(path.join(os.tmpdir(), 'omfm-exact-before-upstream-'));
+    roots.push(root);
+    const store = new ConfigStore(root);
+    store.updateSelectedModelIds(['same', 'nvidia/same']);
+    store.writeModelCache({
+      models: [
+        { id: 'same', upstreamId: 'same', name: 'OpenRouter Same', provider: 'test', source: 'openrouter', raw: { id: 'same', pricing: { prompt: '0', completion: '0', request: '0' } } },
+        { id: 'nvidia/same', upstreamId: 'same', name: 'NVIDIA Same', provider: 'nvidia', source: 'nvidia' },
+      ],
+      fetchedAt: new Date().toISOString(),
+    });
+    store.recordSuccess('nvidia/same', 1);
+    store.recordSuccess('same', 100);
+    const seen: any[] = [];
+    const server = createOmfmServer({
+      store,
+      env: { OPENROUTER_API_KEY: 'key', NVIDIA_API_KEY: 'nvapi-key' } as NodeJS.ProcessEnv,
+      fetchImpl: (async (url, init) => {
+        seen.push({ url: String(url), body: JSON.parse(String(init?.body)) });
+        return Response.json({ id: 'chatcmpl_1', model: seen.at(-1).body.model, choices: [{ message: { role: 'assistant', content: 'ok' }, finish_reason: 'stop' }] });
+      }) as FetchLike,
+    });
+    const port = await listen(server, 0);
+    try {
+      const res = await fetch(`http://127.0.0.1:${port}/v1/chat/completions`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ model: 'same', messages: [{ role: 'user', content: 'hi' }] }) });
+      const body = await res.json() as any;
+      expect(res.status).toBe(200);
+      expect(body.model).toBe('same');
+      expect(seen).toHaveLength(1);
+      expect(seen[0].url).toContain('openrouter.ai');
+    } finally {
+      await new Promise<void>((resolve) => server.close(() => resolve()));
+    }
+  });
+
+  it('honors provider-prefixed selected models requested by derived upstream id', async () => {
+    const root = fs.mkdtempSync(path.join(os.tmpdir(), 'omfm-derived-upstream-request-'));
+    roots.push(root);
+    const store = new ConfigStore(root);
+    store.updateSelectedModelIds(['nvidia/foo', 'fast:free']);
+    store.writeModelCache({
+      models: [
+        { id: 'nvidia/foo', name: 'NVIDIA Foo', provider: 'nvidia', source: 'nvidia' },
+        { id: 'fast:free', name: 'Fast', provider: 'test', source: 'openrouter', raw: { id: 'fast:free', pricing: { prompt: '0', completion: '0' } } },
+      ],
+      fetchedAt: new Date().toISOString(),
+    });
+    store.recordSuccess('fast:free', 1);
+    store.recordSuccess('nvidia/foo', 100);
+    const seen: any[] = [];
+    const server = createOmfmServer({
+      store,
+      env: { OPENROUTER_API_KEY: 'key', NVIDIA_API_KEY: 'nvapi-key' } as NodeJS.ProcessEnv,
+      fetchImpl: (async (url, init) => {
+        seen.push({ url: String(url), body: JSON.parse(String(init?.body)) });
+        return Response.json({ id: 'chatcmpl_1', model: seen.at(-1).body.model, choices: [{ message: { role: 'assistant', content: 'ok' }, finish_reason: 'stop' }] });
+      }) as FetchLike,
+    });
+    const port = await listen(server, 0);
+    try {
+      const res = await fetch(`http://127.0.0.1:${port}/v1/chat/completions`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ model: 'foo', messages: [{ role: 'user', content: 'hi' }] }) });
+      const body = await res.json() as any;
+      expect(res.status).toBe(200);
+      expect(body.model).toBe('foo');
+      expect(seen).toHaveLength(1);
+      expect(seen[0].url).toContain('integrate.api.nvidia.com');
+    } finally {
+      await new Promise<void>((resolve) => server.close(() => resolve()));
+    }
+  });
+
   it('treats legacy OpenRouter nvidia/*:free cached rows as OpenRouter when source is absent', async () => {
     const root = fs.mkdtempSync(path.join(os.tmpdir(), 'omfm-legacy-nvidia-openrouter-'));
     roots.push(root);
@@ -173,6 +281,7 @@ describe('local proxy server', () => {
       const firstBody = await first.json() as any;
       expect(firstBody.model).toBe('slow:free');
       expect(calls).toEqual(['fast:free', 'slow:free']);
+      expect(store.readLatency()['fast:free']?.lastStatus).toBe('rate-limited');
       const second = await fetch(`${base}/v1/chat/completions`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ model: 'auto', messages: [{ role: 'user', content: 'hi' }] }) });
       const secondBody = await second.json() as any;
       expect(secondBody.model).toBe('slow:free');

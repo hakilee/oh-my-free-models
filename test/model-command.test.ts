@@ -45,6 +45,14 @@ describe('model command integration', () => {
     expect(out.text()).not.toContain('\u001b');
   });
 
+  it('--all stores the recommendation display order', async () => {
+    const store = tempStore();
+    store.recordSuccess('beta/b:free', 20);
+    store.recordSuccess('alpha/a:free', 200);
+    await runModelCommand({ all: true, store, fetchImpl: okFetch(), env: { OPENROUTER_API_KEY: 'key' } as NodeJS.ProcessEnv, stdout: output(false).stream });
+    expect(store.readConfig().selectedModelIds).toEqual(['beta/b:free', 'alpha/a:free']);
+  });
+
   it('uses a fresh cached model list without refetching providers', async () => {
     const store = tempStore();
     store.writeModelCache({ models: [{ id: 'cached/c:free', name: 'Cached', provider: 'cached' }], fetchedAt: new Date().toISOString() });

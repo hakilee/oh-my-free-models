@@ -5,12 +5,12 @@ Use this route for latency routing, probe scheduling, candidate ordering, and re
 ## Current routing model
 
 - Implementation anchors: [src/latency/router.ts](../src/latency/router.ts), [src/latency/probe.ts](../src/latency/probe.ts), [src/latency/probe-scheduler.ts](../src/latency/probe-scheduler.ts), and [src/config/store.ts](../src/config/store.ts) for cooldown bookkeeping.
-- `chooseModel` honors a requested model only when it is selected and not a generic alias, even when that model is in cooldown.
+- `chooseModel` honors a requested model only when it is selected and not a generic alias, even when that model is in cooldown. Server routing normalizes provider upstream IDs to selected local IDs before calling the router.
 - Generic or unknown requests choose the selected model with the lowest finite latency observation, skipping models whose `cooldownUntil` is still in the future.
 - Selected models that received a recent rate-limit (HTTP 429) or quota (HTTP 402) response enter a 10-minute cooldown and are not picked until the window expires.
 - When every selected model is in active cooldown, routing falls back to the full latency-ordered selection so requests do not stall.
-- If no latency is known, routing falls back to deterministic selected order.
-- `orderedCandidates` orders retry candidates by status rank (healthy first, other failures next, cooling last), then by known latency and selected order.
+- If no latency is known, routing falls back to deterministic selected order. The model picker and `omfm model --all` write that order from the recommendation-sorted display; explicit `--select` keeps the provided order.
+- `orderedCandidates` orders retry candidates by status rank (healthy first, other failures next, cooling last), then by known latency and selected order, including latency ties.
 
 ## Required route for latency work
 

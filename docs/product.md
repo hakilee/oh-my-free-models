@@ -17,9 +17,15 @@
 
 - The package does not auto-start a daemon during install; users explicitly run `omfm start` or `omfm start --daemon`.
 - Only models selected by `omfm model` are eligible for request routing.
-- If a request names a selected model, the proxy honors it; generic or unknown model names route by lowest known latency or deterministic selected order.
+- If a request names a selected model, the proxy honors it; provider upstream IDs also match selected local models when available. Generic or unknown model names route by lowest known latency or deterministic selected order.
 - Supported provider adapters must preserve free/text eligibility and selected-model allowlisting.
 - Unsupported modalities and non-chat endpoints remain out of scope for version `0.0.1` unless an implementation task changes the product contract.
+
+## Model selection experience
+
+- The model picker and static table surface current selections first, then healthier recommendations by cached latency and provider catalog rank.
+- Saving from the picker preserves the displayed order so the UI recommendation order also acts as the no-latency routing fallback.
+- `omfm model --all` uses the same recommendation-sorted display order; explicit `--select` keeps the user-provided order.
 
 ## Agent task routes
 

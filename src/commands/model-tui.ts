@@ -3,7 +3,7 @@ import { ConfigStore } from '../config/store.js';
 import { probeProviderModel } from '../latency/probe.js';
 import { ProbeTerminalState, runProbeScheduler } from '../latency/probe-scheduler.js';
 import { FetchLike, OmfmModel, ProviderApiKeys } from '../types.js';
-import { buildModelRows, ModelDisplayRow, recommendModel, renderStaticModelTable } from './model-view.js';
+import { buildModelRows, ModelDisplayRow, recommendModel, renderStaticModelTable, sortModelRows } from './model-view.js';
 
 export interface ModelTuiResult {
   selectedModelIds: string[];
@@ -210,7 +210,7 @@ async function runRawModelTui(options: RawModelTuiOptions): Promise<ModelTuiResu
       }
       if (key === 'enter') {
         saved = true;
-        const selectedModelIds = [...selected];
+        const selectedModelIds = rows.filter((row) => selected.has(row.model.id)).map((row) => row.model.id);
         options.save(selectedModelIds);
         finish({ selectedModelIds, saved, interrupted: false });
         return;
@@ -256,7 +256,7 @@ async function runRawModelTui(options: RawModelTuiOptions): Promise<ModelTuiResu
 export async function runModelTui(options: ModelTuiOptions): Promise<ModelTuiResult> {
   const selectedIds = new Set(options.selectedModelIds);
   return runRawModelTui({
-    rows: buildModelRows(options.models, selectedIds, options.store.readLatency()),
+    rows: sortModelRows(buildModelRows(options.models, selectedIds, options.store.readLatency()), { selectedFirst: true }),
     stdin: options.stdin,
     stdout: options.stdout,
     save: () => undefined,

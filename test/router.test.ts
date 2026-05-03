@@ -30,6 +30,15 @@ describe('latency router', () => {
     expect(orderedCandidates(['a', 'b', 'c'], { b: { modelId: 'b', latencyMs: 5, updatedAt: '', successes: 1, failures: 0 } })).toEqual(['b', 'a', 'c']);
   });
 
+  it('preserves selected order when retry candidate latency ties', () => {
+    const observations = {
+      a: { modelId: 'a', latencyMs: 50, updatedAt: '', successes: 1, failures: 0, lastStatus: 'ok' as const },
+      b: { modelId: 'b', latencyMs: 50, updatedAt: '', successes: 1, failures: 0, lastStatus: 'ok' as const },
+      c: { modelId: 'c', latencyMs: 10, updatedAt: '', successes: 1, failures: 0, lastStatus: 'ok' as const },
+    };
+    expect(orderedCandidates(['b', 'a', 'c'], observations, 'c')).toEqual(['c', 'b', 'a']);
+  });
+
   it('skips models in active cooldown when picking the lowest latency model', () => {
     const choice = chooseModel(['a', 'b'], {
       a: { modelId: 'a', latencyMs: 10, updatedAt: '', successes: 1, failures: 5, lastStatus: 'rate-limited', cooldownUntil: new Date(NOW + 60_000).toISOString() },

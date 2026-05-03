@@ -85,13 +85,25 @@ function withUpstreamModel(body: any, model: OmfmModel): any {
   return { ...body, model: upstreamId(model) };
 }
 
+function requestedModelForRouting(models: OmfmModel[], requestedModel: unknown): string | undefined {
+  if (typeof requestedModel !== 'string') return undefined;
+  if (models.some((model) => model.id === requestedModel)) return requestedModel;
+  const upstreamMatch = models.find((model) => upstreamId(model) === requestedModel);
+  return upstreamMatch?.id ?? requestedModel;
+}
+
+function orderedSelectedModelIds(models: OmfmModel[], observations: ReturnType<ConfigStore['readLatency']>, requestedModel: unknown): string[] {
+  return orderedCandidates(models.map((model) => model.id), observations, requestedModelForRouting(models, requestedModel));
+}
+
 function noUsableModelResponse(res: ServerResponse, lastError: unknown): void {
   json(res, 400, { error: { message: 'No selected free models are usable with the configured provider API keys.', details: String(lastError ?? '') } });
 }
 
 async function recordUpstreamFailure(store: ConfigStore, modelId: string, upstream: Response): Promise<string> {
   const text = await upstream.text();
-  store.recordFailure(modelId, { status: 'failed', httpStatus: upstream.status, error: text.slice(0, 500) });
+  const status = upstream.status === 429 ? 'rate-limited' : upstream.status === 402 ? 'payment' : 'failed';
+  store.recordFailure(modelId, { status, httpStatus: upstream.status, error: text.slice(0, 500) });
   return text;
 }
 
@@ -132,7 +144,7 @@ export function createOmfmServer(options: ServerOptions = {}): http.Server {
         const selected = await selectedFreeModels(store, apiKeys, fetchImpl);
         assertSelectedFree(selected);
         const byId = new Map(selected.map((model) => [model.id, model]));
-        const candidateIds = orderedCandidates(selected.map((model) => model.id), store.readLatency(), typeof body.model === 'string' ? body.model : undefined);
+        const candidateIds = orderedSelectedModelIds(selected, store.readLatency(), body.model);
         let lastError: unknown;
         let attempted = false;
         let attempts = 0;
@@ -179,7 +191,7 @@ export function createOmfmServer(options: ServerOptions = {}): http.Server {
         const selected = await selectedFreeModels(store, apiKeys, fetchImpl);
         assertSelectedFree(selected);
         const byId = new Map(selected.map((model) => [model.id, model]));
-        const candidateIds = orderedCandidates(selected.map((model) => model.id), store.readLatency(), typeof body.model === 'string' ? body.model : undefined);
+        const candidateIds = orderedSelectedModelIds(selected, store.readLatency(), body.model);
         let lastError: unknown;
         let attempted = false;
         let attempts = 0;

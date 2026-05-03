@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { buildModelRows, formatContextLength, formatLatency, formatRecommendation, recommendModel, renderStaticModelTable, stripAnsi } from '../src/commands/model-view.js';
+import { buildModelRows, formatContextLength, formatLatency, formatRecommendation, recommendModel, renderStaticModelTable, sortModelRows, stripAnsi } from '../src/commands/model-view.js';
 import { OmfmModel } from '../src/types.js';
 
 const models: OmfmModel[] = [
@@ -52,6 +52,22 @@ describe('model view formatting', () => {
     expect(formatRecommendation(recommendModel({ status: 'ok', latencyMs: 1200, model: models[0] }))).toBe('good');
     expect(formatRecommendation(recommendModel({ status: 'ok', latencyMs: 2500, model: models[0] }))).toBe('weak');
     expect(formatRecommendation(recommendModel({ status: 'failed', latencyMs: 10, model: models[0] }))).toBe('—');
+  });
+
+  it('sorts rows by selection, recommendation health, latency, and catalog rank', () => {
+    const rows = buildModelRows([
+      { id: 'z/pending:free', name: 'Pending', provider: 'z', source: 'openrouter', popularityRank: 0 },
+      { id: 'a/slow:free', name: 'Slow', provider: 'a', source: 'openrouter', popularityRank: 1 },
+      { id: 'b/fast:free', name: 'Fast', provider: 'b', source: 'openrouter', popularityRank: 2 },
+      { id: 'c/failed:free', name: 'Failed', provider: 'c', source: 'openrouter', popularityRank: 3 },
+    ], new Set(['a/slow:free']), {
+      'a/slow:free': { modelId: 'a/slow:free', latencyMs: 900, updatedAt: 'now', successes: 1, failures: 0, lastStatus: 'ok' },
+      'b/fast:free': { modelId: 'b/fast:free', latencyMs: 100, updatedAt: 'now', successes: 1, failures: 0, lastStatus: 'ok' },
+      'c/failed:free': { modelId: 'c/failed:free', latencyMs: Number.POSITIVE_INFINITY, updatedAt: 'now', successes: 0, failures: 1, lastStatus: 'failed' },
+    });
+
+    expect(sortModelRows(rows).map((row) => row.model.id)).toEqual(['b/fast:free', 'a/slow:free', 'z/pending:free', 'c/failed:free']);
+    expect(sortModelRows(rows, { selectedFirst: true }).map((row) => row.model.id)).toEqual(['a/slow:free', 'b/fast:free', 'z/pending:free', 'c/failed:free']);
   });
 
   it('can color recommendation marks without adding check icons', () => {

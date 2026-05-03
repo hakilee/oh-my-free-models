@@ -8,6 +8,7 @@ export interface ModelDisplayRow {
   latencyMs?: number;
   status: ModelProbeStatus;
   recommendation: RecommendationMark;
+  catalogIndex?: number;
 }
 
 export interface ModelTableRenderOptions {
@@ -108,7 +109,7 @@ export function formatRecommendation(mark: RecommendationMark, options: { color?
 }
 
 export function buildModelRows(models: OmfmModel[], selectedIds: Set<string>, latency: Record<string, LatencyObservation>, status: ModelProbeStatus = 'pending'): ModelDisplayRow[] {
-  return models.map((model) => {
+  return models.map((model, catalogIndex) => {
     const latencyMs = latencyFor(model.id, latency);
     const cachedStatus = status === 'pending' && latencyMs !== undefined ? 'cached' : status;
     const nextStatus = status === 'pending' ? observedStatus(latency[model.id], cachedStatus) : cachedStatus;
@@ -118,8 +119,51 @@ export function buildModelRows(models: OmfmModel[], selectedIds: Set<string>, la
       latencyMs,
       status: nextStatus,
       recommendation: recommendModel({ latencyMs, status: nextStatus, model }),
+      catalogIndex,
     };
   });
+}
+
+const RECOMMENDATION_ORDER: Record<RecommendationMark, number> = {
+  strong: 0,
+  good: 1,
+  weak: 2,
+  pending: 3,
+  none: 4,
+};
+
+const UNHEALTHY_STATUSES = new Set<ModelProbeStatus>(['failed', 'timeout', 'payment', 'quota', 'rate-limited', 'aborted']);
+
+function availabilityRank(status: ModelProbeStatus): number {
+  if (UNHEALTHY_STATUSES.has(status)) return 2;
+  if (status === 'deferred') return 1;
+  return 0;
+}
+
+function compareOptionalNumber(a: number | undefined, b: number | undefined): number {
+  const aFinite = typeof a === 'number' && Number.isFinite(a);
+  const bFinite = typeof b === 'number' && Number.isFinite(b);
+  if (aFinite && bFinite) return a - b;
+  if (aFinite) return -1;
+  if (bFinite) return 1;
+  return 0;
+}
+
+export function compareModelRows(a: ModelDisplayRow, b: ModelDisplayRow, options: { selectedFirst?: boolean } = {}): number {
+  if (options.selectedFirst && a.selected !== b.selected) return a.selected ? -1 : 1;
+  return availabilityRank(a.status) - availabilityRank(b.status)
+    || RECOMMENDATION_ORDER[a.recommendation] - RECOMMENDATION_ORDER[b.recommendation]
+    || compareOptionalNumber(a.latencyMs, b.latencyMs)
+    || compareOptionalNumber(a.model.popularityRank, b.model.popularityRank)
+    || compareOptionalNumber(a.catalogIndex, b.catalogIndex)
+    || (a.model.source ?? 'openrouter').localeCompare(b.model.source ?? 'openrouter')
+    || a.model.provider.localeCompare(b.model.provider)
+    || a.model.name.localeCompare(b.model.name)
+    || a.model.id.localeCompare(b.model.id);
+}
+
+export function sortModelRows(rows: ModelDisplayRow[], options: { selectedFirst?: boolean } = {}): ModelDisplayRow[] {
+  return [...rows].sort((a, b) => compareModelRows(a, b, options));
 }
 
 function pad(value: string, width: number): string {

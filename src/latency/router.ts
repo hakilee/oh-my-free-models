@@ -60,7 +60,7 @@ export function orderedCandidates(selectedModelIds: string[], observations: Reco
     if (ra !== rb) return ra - rb;
     const la = latencyValue(observations[a]);
     const lb = latencyValue(observations[b]);
-    if (la !== undefined && lb !== undefined) return la - lb || a.localeCompare(b);
+    if (la !== undefined && lb !== undefined) return la - lb || selectedModelIds.indexOf(a) - selectedModelIds.indexOf(b) || a.localeCompare(b);
     if (la !== undefined) return -1;
     if (lb !== undefined) return 1;
     return selectedModelIds.indexOf(a) - selectedModelIds.indexOf(b) || a.localeCompare(b);
