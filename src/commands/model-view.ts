@@ -169,6 +169,10 @@ export function sortModelRows(rows: ModelDisplayRow[], options: { selectedFirst?
   return [...rows].sort((a, b) => compareModelRows(a, b, options));
 }
 
+export function filterListableModelRows(rows: ModelDisplayRow[]): ModelDisplayRow[] {
+  return rows.filter((row) => row.status !== 'failed');
+}
+
 function pad(value: string, width: number): string {
   value = stripControls(value);
   const plain = stripAnsi(value);

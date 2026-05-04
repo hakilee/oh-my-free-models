@@ -4,7 +4,7 @@ import { probeProviderModel } from '../latency/probe.js';
 import { ProbeTerminalState, runProbeScheduler } from '../latency/probe-scheduler.js';
 import { DEFAULT_MODEL_GROUPS, MODEL_GROUP_NAMES } from '../model-groups.js';
 import { FetchLike, ModelGroupName, ModelGroups, OmfmModel, ProviderApiKeys } from '../types.js';
-import { buildModelRows, ModelDisplayRow, recommendModel, renderStaticModelTable, sortModelRows } from './model-view.js';
+import { buildModelRows, filterListableModelRows, ModelDisplayRow, recommendModel, renderStaticModelTable, sortModelRows } from './model-view.js';
 
 export interface ModelTuiResult {
   selectedModelIds: string[];
@@ -232,8 +232,16 @@ async function runRawModelTui(options: RawModelTuiOptions): Promise<ModelTuiResu
     .startProbes({
       signal: controller.signal,
       onRow: (update) => {
-        const row = rows.find((candidate) => candidate.model.id === update.modelId);
+        const rowIndex = rows.findIndex((candidate) => candidate.model.id === update.modelId);
+        const row = rowIndex >= 0 ? rows[rowIndex] : undefined;
         if (!row) return;
+        if (update.status === 'failed') {
+          rows.splice(rowIndex, 1);
+          selected.delete(update.modelId);
+          for (const group of MODEL_GROUP_NAMES) groupSelections[group] = groupSelections[group].filter((candidate) => candidate !== update.modelId);
+          if (!done) render();
+          return;
+        }
         if (update.status) row.status = update.status;
         if (typeof update.latencyMs === 'number') row.latencyMs = update.latencyMs;
         row.recommendation = recommendModel(row);
@@ -327,8 +335,12 @@ async function runRawModelTui(options: RawModelTuiOptions): Promise<ModelTuiResu
 
 export async function runModelTui(options: ModelTuiOptions): Promise<ModelTuiResult> {
   const selectedIds = new Set(options.selectedModelIds);
+  const rows = sortModelRows(
+    filterListableModelRows(buildModelRows(options.models, selectedIds, options.store.readLatency())),
+    { selectedFirst: true },
+  );
   return runRawModelTui({
-    rows: sortModelRows(buildModelRows(options.models, selectedIds, options.store.readLatency()), { selectedFirst: true }),
+    rows,
     selectedModelIds: options.selectedModelIds,
     modelGroups: options.modelGroups ?? DEFAULT_MODEL_GROUPS,
     initialTab: options.initialTab,
@@ -337,7 +349,7 @@ export async function runModelTui(options: ModelTuiOptions): Promise<ModelTuiRes
     save: () => undefined,
     startProbes: ({ onRow, signal }) =>
       (options.runScheduler ?? runProbeScheduler)({
-        models: options.models,
+        models: rows.map((row) => row.model),
         store: options.store,
         signal,
         probe: (model, probeSignal) => {

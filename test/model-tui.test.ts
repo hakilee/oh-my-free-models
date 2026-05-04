@@ -175,6 +175,35 @@ describe('model TUI', () => {
     await promise;
   });
 
+  it('removes a row when probing marks the model failed', async () => {
+    const input = new FakeInput();
+    const output = new FakeOutput();
+    const store = tempStore();
+    const promise = runModelTui({
+      models: sampleModels,
+      selectedModelIds: ['alpha/one:free'],
+      modelGroups: { fast: ['alpha/one:free'], balanced: [], capable: [] },
+      store,
+      apiKeys: { openrouter: 'k' },
+      stdin: input as any,
+      stdout: output as any,
+      runScheduler: async ({ onUpdate }) => {
+        onUpdate?.({
+          modelId: 'alpha/one:free',
+          result: { modelId: 'alpha/one:free', status: 'failed' },
+        });
+        return 'completed';
+      },
+    });
+    await new Promise((resolve) => setImmediate(resolve));
+    const frame = latestFrame(output.text());
+    expect(frame).not.toContain('alpha/one:free');
+    expect(frame).not.toContain('failed');
+    expect(frame).toContain('All 0');
+    input.send('\r');
+    await expect(promise).resolves.toMatchObject({ saved: true, selectedModelIds: [], modelGroups: { fast: [], balanced: [], capable: [] } });
+  });
+
   it('keeps row-level rate limits non-terminal while later rows update', async () => {
     const input = new FakeInput();
     const output = new FakeOutput();

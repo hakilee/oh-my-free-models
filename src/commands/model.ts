@@ -7,7 +7,7 @@ import { isCoolingDown } from '../latency/router.js';
 import { normalizeModelGroupName } from '../model-groups.js';
 import { loadModelCatalog } from '../providers/catalog.js';
 import { FetchLike, ModelGroupName, ModelSource, OmfmModel, ProviderApiKeys } from '../types.js';
-import { buildModelRows, renderStaticModelTable, sortModelRows } from './model-view.js';
+import { buildModelRows, filterListableModelRows, ModelDisplayRow, renderStaticModelTable, sortModelRows } from './model-view.js';
 import { runModelTui } from './model-tui.js';
 
 interface OutputLike {
@@ -103,6 +103,10 @@ async function loadModels(options: { apiKeys: ProviderApiKeys; fetchImpl?: Fetch
   return catalog.models;
 }
 
+function listableModelRows(models: OmfmModel[], selectedIds: Set<string>, store: ConfigStore): ModelDisplayRow[] {
+  return filterListableModelRows(buildModelRows(models, selectedIds, store.readLatency()));
+}
+
 export async function runModelCommand(options: RunModelCommandOptions = {}): Promise<void> {
   const store = options.store ?? new ConfigStore();
   const stdout = options.stdout ?? process.stdout;
@@ -126,11 +130,11 @@ export async function runModelCommand(options: RunModelCommandOptions = {}): Pro
   }
 
   if (options.all) {
-    const ids = sortModelRows(buildModelRows(models, new Set(), store.readLatency())).map((row) => row.model.id);
+    const ids = sortModelRows(listableModelRows(models, new Set(), store)).map((row) => row.model.id);
     if (group) store.updateModelGroup(group, ids);
     else store.updateSelectedModelIds(ids);
   } else if (options.select) {
-    const freeIds = new Set(models.map((model) => model.id));
+    const freeIds = new Set(listableModelRows(models, new Set(), store).map((row) => row.model.id));
     const invalid = options.select.filter((id) => !freeIds.has(id));
     if (invalid.length > 0) {
       throw new Error(`Selected model IDs are not current free models: ${invalid.join(', ')}`);
@@ -162,12 +166,13 @@ export async function runModelCommand(options: RunModelCommandOptions = {}): Pro
 
   if (options.json) {
     const nextConfig = store.readConfig();
-    writeLine(stdout, JSON.stringify({ models, selectedModelIds: nextConfig.selectedModelIds, modelGroups: nextConfig.modelGroups }, null, 2));
+    const listableModels = listableModelRows(models, new Set(nextConfig.selectedModelIds), store).map((row) => row.model);
+    writeLine(stdout, JSON.stringify({ models: listableModels, selectedModelIds: nextConfig.selectedModelIds, modelGroups: nextConfig.modelGroups }, null, 2));
     return;
   }
 
   if (!stdout.isTTY || options.all || options.select) {
     const selectedIds = new Set(store.readConfig().selectedModelIds);
-    stdout.write(`Free models:\n${renderStaticModelTable(sortModelRows(buildModelRows(models, selectedIds, store.readLatency()), { selectedFirst: true }))}`);
+    stdout.write(`Free models:\n${renderStaticModelTable(sortModelRows(listableModelRows(models, selectedIds, store), { selectedFirst: true }))}`);
   }
 }

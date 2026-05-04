@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { buildModelRows, formatContextLength, formatLatency, formatRecommendation, recommendModel, renderStaticModelTable, sortModelRows, stripAnsi } from '../src/commands/model-view.js';
+import { buildModelRows, filterListableModelRows, formatContextLength, formatLatency, formatRecommendation, recommendModel, renderStaticModelTable, sortModelRows, stripAnsi } from '../src/commands/model-view.js';
 import { OmfmModel } from '../src/types.js';
 
 const models: OmfmModel[] = [
@@ -52,6 +52,14 @@ describe('model view formatting', () => {
     expect(formatRecommendation(recommendModel({ status: 'ok', latencyMs: 1200, model: models[0] }))).toBe('good');
     expect(formatRecommendation(recommendModel({ status: 'ok', latencyMs: 2500, model: models[0] }))).toBe('weak');
     expect(formatRecommendation(recommendModel({ status: 'failed', latencyMs: 10, model: models[0] }))).toBe('—');
+  });
+
+  it('filters failed rows from user-facing model lists', () => {
+    const rows = buildModelRows(models, new Set(), {
+      'alpha/a:free': { modelId: 'alpha/a:free', latencyMs: Number.POSITIVE_INFINITY, updatedAt: 'now', successes: 0, failures: 1, lastStatus: 'failed' },
+    });
+
+    expect(filterListableModelRows(rows).map((row) => row.model.id)).toEqual(['nvidia/beta/b']);
   });
 
   it('sorts rows by selection, recommendation health, latency, and catalog rank', () => {

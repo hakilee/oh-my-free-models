@@ -53,6 +53,23 @@ describe('model command integration', () => {
     expect(store.readConfig().selectedModelIds).toEqual(['beta/b:free', 'alpha/a:free']);
   });
 
+  it('filters fresh cached models to currently configured providers', async () => {
+    const store = tempStore();
+    store.writeModelCache({
+      models: [
+        { id: 'openrouter/c:free', name: 'Cached OpenRouter', provider: 'openrouter', source: 'openrouter' },
+        { id: 'nvidia/cached', upstreamId: 'cached', name: 'Cached NVIDIA', provider: 'nvidia', source: 'nvidia' },
+      ],
+      fetchedAt: new Date().toISOString(),
+    });
+    const out = output(false);
+    const fetchImpl = vi.fn(okFetch());
+    await runModelCommand({ json: true, store, fetchImpl, env: { OPENROUTER_API_KEY: 'key' } as NodeJS.ProcessEnv, stdout: out.stream });
+    const body = JSON.parse(out.text()) as any;
+    expect(body.models.map((model: any) => model.id)).toEqual(['openrouter/c:free']);
+    expect(fetchImpl).not.toHaveBeenCalled();
+  });
+
   it('uses a fresh cached model list without refetching providers', async () => {
     const store = tempStore();
     store.writeModelCache({ models: [{ id: 'cached/c:free', name: 'Cached', provider: 'cached' }], fetchedAt: new Date().toISOString() });
@@ -78,6 +95,20 @@ describe('model command integration', () => {
     await runModelCommand({ group: 'fast', select: ['beta/b:free'], store, fetchImpl: okFetch(), env: { OPENROUTER_API_KEY: 'key' } as NodeJS.ProcessEnv, stdout: output(false).stream });
     expect(store.readConfig().modelGroups.fast).toEqual(['beta/b:free']);
     expect(store.readConfig().selectedModelIds).toEqual(['beta/b:free']);
+  });
+
+  it('omits cached failed models from JSON, static output, and --all selection', async () => {
+    const store = tempStore();
+    store.recordFailure('alpha/a:free', { status: 'failed', httpStatus: 404 });
+    const jsonOut = output(false);
+    await runModelCommand({ json: true, store, fetchImpl: okFetch(), env: { OPENROUTER_API_KEY: 'key' } as NodeJS.ProcessEnv, stdout: jsonOut.stream });
+    expect((JSON.parse(jsonOut.text()) as any).models.map((model: any) => model.id)).toEqual(['beta/b:free']);
+
+    const allOut = output(false);
+    await runModelCommand({ all: true, store, fetchImpl: okFetch(), env: { OPENROUTER_API_KEY: 'key' } as NodeJS.ProcessEnv, stdout: allOut.stream });
+    expect(store.readConfig().selectedModelIds).toEqual(['beta/b:free']);
+    expect(allOut.text()).not.toContain('alpha/a:free');
+    expect(allOut.text()).toContain('Beta');
   });
 
   it('--all selects all and non-TTY static output does not open TUI', async () => {
