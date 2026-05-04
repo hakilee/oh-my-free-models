@@ -39,6 +39,23 @@ Use `npm run docs:check` for documentation structure once the docs harness is pr
 
 When you change provider, latency, or client compatibility behavior, update the matching `docs/` route and `research/` note in the same change or record why no documentation update was needed.
 
+## Multilingual user-facing docs
+
+`README.md` and `INSTALLATION.md` ship in five languages at the repository root:
+
+- English: `README.md`, `INSTALLATION.md`
+- 한국어: `README.ko.md`, `INSTALLATION.ko.md`
+- 简体中文: `README.zh-CN.md`, `INSTALLATION.zh-CN.md`
+- 繁體中文: `README.zh-TW.md`, `INSTALLATION.zh-TW.md`
+- 日本語: `README.ja.md`, `INSTALLATION.ja.md`
+
+When any of these changes:
+
+1. Update every language version in the same change. Code blocks, commands, env vars, file paths, port numbers, and model IDs must stay byte-identical across languages — only prose is translated. Inline `#` comments inside example shell blocks may be translated to match each language.
+2. Dispatch a native-speaker writer for each non-source language to verify the translation reads naturally to a reader from that language's region (e.g., mainland Chinese for `zh-CN`, Taiwan for `zh-TW`, Japan for `ja`, Korea for `ko`, US/UK for English) — not as translationese.
+3. The language switcher header at the top of each file lists all five languages; the current language is plain text, the others are relative links. Keep this row consistent across files when adding or renaming languages.
+4. `npm run docs:check` validates link integrity for required files; manually confirm cross-language links resolve when adding or removing language mirrors.
+
 ## Behavioral Principles
 
 Bias toward caution over speed. For trivial tasks, use judgment.
