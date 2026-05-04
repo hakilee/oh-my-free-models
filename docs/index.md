@@ -14,10 +14,10 @@ This directory is the maintained route map for `oh-my-free-models`. Start here w
 
 ## Maintenance rules
 
-- `README.md` remains the user-facing quickstart and command reference.
+- `README.md` is the why-focused entry doc; setup and CLI reference live in `INSTALLATION.md`. Korean mirrors are `README.ko.md` and `INSTALLATION.ko.md`.
 - `docs/` stays compact and route-oriented.
 - `research/` stores reusable findings and decision records that are too detailed for route pages.
-- Keep all maintained documentation in English.
+- Keep all maintained documentation under `docs/` and `research/` in English. Top-level user-facing docs (`README*.md`, `INSTALLATION*.md`) ship English and Korean.
 
 ## Validation
 
