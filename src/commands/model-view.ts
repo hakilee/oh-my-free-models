@@ -149,7 +149,7 @@ function compareOptionalNumber(a: number | undefined, b: number | undefined): nu
   return 0;
 }
 
-export function compareModelRows(a: ModelDisplayRow, b: ModelDisplayRow, options: { selectedFirst?: boolean } = {}): number {
+function compareModelRows(a: ModelDisplayRow, b: ModelDisplayRow, options: { selectedFirst?: boolean } = {}): number {
   if (options.selectedFirst && a.selected !== b.selected) return a.selected ? -1 : 1;
   return availabilityRank(a.status) - availabilityRank(b.status)
     || RECOMMENDATION_ORDER[a.recommendation] - RECOMMENDATION_ORDER[b.recommendation]

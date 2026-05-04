@@ -55,13 +55,6 @@ function bestCachedModel(models: OmfmModel[], store: ConfigStore): { model: Omfm
   return decorated.find((item) => !isCoolingDown(item.obs)) ?? decorated[0];
 }
 
-function compareProbeResultLatency(modelOrder: Map<string, number>) {
-  return (a: ProbeResult & { latencyMs: number }, b: ProbeResult & { latencyMs: number }) =>
-    a.latencyMs - b.latencyMs
-    || (modelOrder.get(a.modelId) ?? Number.MAX_SAFE_INTEGER) - (modelOrder.get(b.modelId) ?? Number.MAX_SAFE_INTEGER)
-    || a.modelId.localeCompare(b.modelId);
-}
-
 async function runBestModel(options: { models: OmfmModel[]; apiKeys: ProviderApiKeys; store: ConfigStore; fetchImpl?: FetchLike; runScheduler?: typeof runProbeScheduler }): Promise<{ model: OmfmModel; latencyMs?: number; status: string; probed: boolean }> {
   if (options.models.length === 0) throw new Error('No current models are available for best-model selection. Run `omfm model` to refresh the model list.');
   const results = new Map<string, ProbeResult>();
@@ -79,7 +72,11 @@ async function runBestModel(options: { models: OmfmModel[]; apiKeys: ProviderApi
   const modelOrder = new Map(options.models.map((model, index) => [model.id, index]));
   const fresh = [...results.values()]
     .filter((result): result is ProbeResult & { latencyMs: number } => result.status === 'ok' && typeof result.latencyMs === 'number' && Number.isFinite(result.latencyMs))
-    .sort(compareProbeResultLatency(modelOrder))[0];
+    .sort((a, b) =>
+      a.latencyMs - b.latencyMs
+      || (modelOrder.get(a.modelId) ?? Number.MAX_SAFE_INTEGER) - (modelOrder.get(b.modelId) ?? Number.MAX_SAFE_INTEGER)
+      || a.modelId.localeCompare(b.modelId),
+    )[0];
   if (fresh) {
     const model = options.models.find((candidate) => candidate.id === fresh.modelId)!;
     return { model, latencyMs: Math.round(fresh.latencyMs), status: fresh.status, probed: true };
