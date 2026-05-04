@@ -34,7 +34,7 @@ Only the providers whose keys are present are used.
 omfm model
 ```
 
-In an interactive terminal, this opens a model picker. It shows provider, model, context size, cached or measured latency, recommendation, and probe status. Rows are ordered by current selection, health/recommendation, cached latency, and provider catalog rank, so the best known choices are easiest to review.
+In an interactive terminal, this opens a model picker. Each row shows provider, model, context size, cached or measured latency, recommendation, and probe status. Rows are sorted by current selection, health/recommendation, cached latency, and provider catalog rank — the best-known choices appear first.
 
 Picker indicators:
 
@@ -51,9 +51,9 @@ Picker keys:
 
 Saved selections keep the displayed order. That order becomes the deterministic routing fallback when no latency is known yet.
 
-Latency probes run in small bounded parallel batches with conservative pacing. Row-level `rate-limit` responses are shown for that model and later rows continue probing. `quota`/payment responses stop the remaining unstarted probes for that run, but cached latency is not overwritten.
+Latency probes run in small parallel batches with conservative pacing. A `rate-limit` response marks that model and lets the remaining rows continue probing. A `quota`/payment response stops any probes not yet started for that run, but doesn't overwrite cached latency.
 
-When stdout is not a TTY, `omfm model` prints a static ANSI-free table and does not probe. Non-interactive forms:
+When stdout is not a TTY, `omfm model` prints a static ANSI-free table and skips probing. Non-interactive forms:
 
 ```bash
 omfm model --all
@@ -115,7 +115,7 @@ Required endpoints in `0.0.1`:
 - `POST /anthropic/v1/messages`
 - `POST /anthropic/messages` (alias)
 
-`omfm` accepts the local Anthropic auth header and forwards requests with the matching provider key for the chosen model. When a provider exposes its own Anthropic-compatible endpoint (for example OpenRouter's Anthropic surface), `omfm` prefers it; otherwise it falls back to a minimal text-only Anthropic-to-OpenAI translation.
+`omfm` accepts the local Anthropic auth header and forwards requests with the matching provider key. If the provider exposes its own Anthropic-compatible endpoint (e.g. OpenRouter's Anthropic surface), `omfm` uses it directly; otherwise it falls back to a minimal text-only Anthropic-to-OpenAI translation.
 
 ## 6. Diagnostics
 
@@ -123,16 +123,16 @@ Required endpoints in `0.0.1`:
 omfm doctor
 ```
 
-`doctor` reports config paths, provider key sources, selected model count, cached model count, and daemon state. It does not modify client tool settings.
+`doctor` reports config paths, provider key sources, selected model count, cached model count, and daemon state. It doesn't modify any settings.
 
 ## 7. Routing and latency rules
 
 - Only models you selected with `omfm model` are eligible for routing.
-- If a request names a selected model, `omfm` honors it. For provider-prefixed local models, the matching upstream model id is also honored.
+- If a request names a selected model, `omfm` routes to it directly. Provider-prefixed local model names also resolve to the matching upstream model id.
 - Generic or unknown model names route to the selected model with the lowest locally observed latency.
 - Models that just hit rate-limit (HTTP 429) or quota (HTTP 402) are skipped for ~10 minutes before becoming candidates again. If every selected model is cooling, routing falls back to the full latency-ordered list so requests still proceed.
 - Successful requests update the local latency cache.
-- If no latency is known, routing falls back to deterministic selected order. The interactive picker and `omfm model --all` save that order from the recommendation-sorted display.
+- With no latency data, routing falls back to the deterministic selected order. The interactive picker and `omfm model --all` save that order from the recommendation-sorted display.
 - No hosted latency service is used in `0.0.1`.
 
 ## 8. Development

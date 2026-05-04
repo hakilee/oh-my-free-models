@@ -4,15 +4,15 @@
 
 ## Why this exists
 
-Free-tier coding agents look great on paper and break in practice. Four things tend to go wrong:
+Free-tier coding agents look great on paper and break in practice. Four things go wrong:
 
 **Rate limits stop your work mid-task.** Free models on OpenRouter or NVIDIA hit 429 unpredictably. A clean run becomes a stalled tool call, and you have to retry by hand.
 
-**Latency drifts hour to hour.** The same free model is fast in the morning and unusable by afternoon, depending on time and region. There is no "this is the fast one" — only "this is the fast one *right now*."
+**Latency drifts hour to hour.** The same free model is fast in the morning and unusable by afternoon. No model is "the fast one" — only "the fast one *right now*."
 
-**Quotas force manual provider swapping.** When one provider's free quota is exhausted you switch keys and base URLs by hand. Your agent's config does not adapt.
+**Quotas force manual provider swapping.** When one provider's free quota runs out, you're manually swapping keys and base URLs. Your agent doesn't adapt.
 
-**The free catalog churns.** Models appear, disappear, get marked deprecated, or quietly start returning errors. You learn this by hitting the wall, not from a dashboard.
+**The free catalog churns.** Models appear, disappear, get deprecated, or quietly start returning errors. You find out by hitting the wall, not from a dashboard.
 
 ## What omfm does about it
 
@@ -20,10 +20,10 @@ You give `omfm` an allowlist of free models you actually want to use. It runs as
 
 - measures and caches per-model latency from your machine
 - routes generic requests to the lowest-latency live candidate
-- cools off models that just hit 429 or 402 for ~10 minutes, so the agent does not retry into the same wall
+- cools off models that just hit 429 or 402 for ~10 minutes, so the agent doesn't retry into the same wall
 - exposes one OpenAI-compatible (`/v1`) and one Anthropic-compatible (`/anthropic`) surface, so any drop-in client works without code changes
 
-Your agent points at `localhost`. Switching providers, retrying around rate limits, and picking the currently-fast model all happen below it.
+Your agent points at `localhost`. Provider switching, rate-limit retries, and picking the currently-fast model all happen below it.
 
 ## 30-second try-it
 
