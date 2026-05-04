@@ -135,15 +135,7 @@ omfm doctor
 - Latency 정보가 없으면 결정적 선택 순서로 fallback합니다. picker와 `omfm model --all` 은 추천 정렬 순서대로 저장합니다.
 - `0.0.1` 에서는 hosted latency 서비스를 쓰지 않습니다.
 
-## 8. 0.0.1 의 한계
-
-- OpenRouter, NVIDIA chat 모델만 지원.
-- Hosted latency 서비스 없음.
-- 설치 시 데몬 autostart 없음.
-- Embedding, image, audio, video 등 chat 외 엔드포인트 없음.
-- Tool-use 와 multimodal Anthropic 블록은 provider가 Anthropic 호환 surface를 노출할 때만 best-effort pass-through 이고, 그 외에는 거부 또는 미지원입니다.
-
-## 9. 개발
+## 8. 개발
 
 `omfm` 자체를 작업하려면:
 

@@ -135,15 +135,7 @@ omfm doctor
 - If no latency is known, routing falls back to deterministic selected order. The interactive picker and `omfm model --all` save that order from the recommendation-sorted display.
 - No hosted latency service is used in `0.0.1`.
 
-## 8. Limitations in 0.0.1
-
-- OpenRouter and NVIDIA chat models only.
-- No hosted latency service.
-- No install-time daemon autostart.
-- No embeddings, image, audio, video, or non-chat endpoints.
-- Tool-use and multimodal Anthropic blocks are best-effort pass-through when a provider exposes an Anthropic-compatible surface, otherwise rejected/unsupported.
-
-## 9. Development
+## 8. Development
 
 To work on `omfm` itself:
 
