@@ -55,6 +55,5 @@ export ANTHROPIC_API_KEY=
 ## もっと知る
 
 - セットアップ、全 CLI フラグ、daemon 制御、診断: [INSTALLATION.ja.md](./INSTALLATION.ja.md)
-- English README: [README.md](./README.md)
 - ルーティングの内部動作: [docs/latency-routing.md](./docs/latency-routing.md)
 - Provider カタログ: [docs/provider-guide.md](./docs/provider-guide.md)

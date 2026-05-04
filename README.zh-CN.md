@@ -55,6 +55,5 @@ export ANTHROPIC_API_KEY=
 ## 更多
 
 - 安装、全部 CLI 参数、daemon 控制、诊断：[INSTALLATION.zh-CN.md](./INSTALLATION.zh-CN.md)
-- English README：[README.md](./README.md)
 - 路由内部机制：[docs/latency-routing.md](./docs/latency-routing.md)
 - Provider 目录：[docs/provider-guide.md](./docs/provider-guide.md)

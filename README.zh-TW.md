@@ -55,6 +55,5 @@ export ANTHROPIC_API_KEY=
 ## 更多
 
 - 安裝、所有 CLI 旗標、daemon 控制、診斷：[INSTALLATION.zh-TW.md](./INSTALLATION.zh-TW.md)
-- English README: [README.md](./README.md)
 - Routing 內部運作：[docs/latency-routing.md](./docs/latency-routing.md)
 - Provider 目錄：[docs/provider-guide.md](./docs/provider-guide.md)

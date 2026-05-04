@@ -1,6 +1,8 @@
 # 설치 및 설정
 
-`oh-my-free-models` (`omfm`) 설치부터 클라이언트 연결까지 순서대로 설명합니다. 프로젝트의 목적과 배경은 [README.ko.md](./README.ko.md) 를 보세요. English: [INSTALLATION.md](./INSTALLATION.md).
+[English](./INSTALLATION.md) | 한국어 | [简体中文](./INSTALLATION.zh-CN.md) | [繁體中文](./INSTALLATION.zh-TW.md) | [日本語](./INSTALLATION.ja.md)
+
+`oh-my-free-models` (`omfm`) 설치부터 클라이언트 연결까지 순서대로 설명합니다. 프로젝트의 목적과 배경은 [README.ko.md](./README.ko.md) 를 보세요.
 
 ## 1. 설치
 
