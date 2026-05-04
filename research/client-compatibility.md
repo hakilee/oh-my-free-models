@@ -15,6 +15,7 @@ Update this page when endpoint behavior, translation semantics, authentication a
 - The local Anthropic-compatible base URL is `http://localhost:4567/anthropic`.
 - Required Anthropic-compatible routes in `0.0.1` are `POST /anthropic/v1/messages` and the `POST /anthropic/messages` alias.
 - Local Anthropic auth headers are accepted, while provider access uses configured provider keys.
+- Per-mode model names are handled as local routing aliases before upstream forwarding, so clients can use `omfm/fast`, `omfm/balanced`, `omfm/capable`, or the `haiku`/`sonnet`/`opus` aliases without the upstream provider exposing those IDs.
 - Tool-use and multimodal Anthropic blocks are best-effort pass-through through provider-compatible Anthropic routes; otherwise they are rejected or unsupported.
 
 ## Compatibility gaps to track

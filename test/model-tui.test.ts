@@ -50,8 +50,13 @@ describe('model TUI', () => {
     expect(output.text()).toContain('Lat');
     expect(output.text()).toContain('Status');
     expect(output.text()).toContain('▶ current');
-    expect(output.text()).toContain('● selected');
-    expect(output.text()).toContain('○ unselected');
+    expect(output.text()).toContain('● in active tab');
+    expect(output.text()).toContain('○ not in tab');
+    expect(output.text()).toContain('All 1');
+    expect(output.text()).toContain('Fast 0');
+    expect(output.text()).toContain('Balanced 0');
+    expect(output.text()).toContain('Capable 0');
+    expect(output.text()).toContain('Tab/h/l switch');
     expect(output.text()).toContain('\u001b[7m');
     expect(output.text()).toContain('\u001b[?1049h');
     expect(output.text()).toContain('\u001b[?1000h');
@@ -63,6 +68,34 @@ describe('model TUI', () => {
     expect(output.text().toLowerCase()).not.toContain('ranking');
     input.send('q');
     await promise;
+  });
+
+  it('switches tabs and saves model-group selections from the default TUI', async () => {
+    const input = new FakeInput();
+    const output = new FakeOutput();
+    const store = tempStore();
+    const promise = runModelTui({
+      models: sampleModels,
+      selectedModelIds: [],
+      modelGroups: { fast: [], balanced: [], capable: [] },
+      store,
+      apiKeys: { openrouter: 'k' },
+      stdin: input as any,
+      stdout: output as any,
+      runScheduler: async () => new Promise(() => undefined),
+    });
+
+    input.send('\t');
+    input.send('\u001b[D');
+    input.send('\u001b[C');
+    input.send(' ');
+    input.send('\r');
+
+    await expect(promise).resolves.toMatchObject({
+      saved: true,
+      selectedModelIds: ['alpha/one:free'],
+      modelGroups: { fast: ['alpha/one:free'], balanced: [], capable: [] },
+    });
   });
 
   it('toggles, moves, saves, aborts scheduler, and restores terminal', async () => {
@@ -199,7 +232,7 @@ describe('model TUI', () => {
     });
 
     let frame = latestFrame(output.text());
-    expect(frame).toContain('Rows 1-5/20');
+    expect(frame).toContain('Rows 1-4/20');
     expect(frame).toContain('Model 01');
     expect(frame).not.toContain('Model 20');
     expect(frame.split('\n').length - 1).toBeLessThanOrEqual(output.rows);
@@ -207,8 +240,8 @@ describe('model TUI', () => {
 
     input.send('\u001b[6~');
     frame = latestFrame(output.text());
-    expect(frame).toContain('Rows 6-10/20');
-    expect(frame).toContain('Model 06');
+    expect(frame).toContain('Rows 5-8/20');
+    expect(frame).toContain('Model 05');
     expect(frame).not.toContain('Model 01');
     expect(frame.split('\n').length - 1).toBeLessThanOrEqual(output.rows);
     expect(frame.split('\n').find((line) => line.includes('Cur Sel'))).toBe(firstHeader);
@@ -241,17 +274,17 @@ describe('model TUI', () => {
 
     input.send('\u001b[<65;10;5M');
     let frame = latestFrame(output.text());
-    expect(frame).toContain('Rows 2-6/20');
+    expect(frame).toContain('Rows 2-5/20');
     expect(frame).toContain('Model 02');
 
     input.send('\u001b[<65;10;5M');
     frame = latestFrame(output.text());
-    expect(frame).toContain('Rows 3-7/20');
+    expect(frame).toContain('Rows 3-6/20');
     expect(frame).toContain('Model 03');
 
     input.send('\u001b[<64;10;5M');
     frame = latestFrame(output.text());
-    expect(frame).toContain('Rows 2-6/20');
+    expect(frame).toContain('Rows 2-5/20');
     expect(frame).toContain('Model 02');
 
     input.send('q');

@@ -80,6 +80,39 @@ describe('local proxy server', () => {
     });
   });
 
+  it('routes model-group aliases within that group', async () => {
+    const store = tempStore();
+    store.updateModelGroup('fast', ['slow:free']);
+    store.updateModelGroup('capable', ['fast:free']);
+    const seen: any[] = [];
+    const mockFetch: FetchLike = async (_url, init) => {
+      seen.push(JSON.parse(String(init?.body)));
+      return Response.json({ id: 'chatcmpl_1', model: seen.at(-1).model, choices: [{ message: { role: 'assistant', content: 'ok' }, finish_reason: 'stop' }] });
+    };
+    await withServer(store, mockFetch, async (base) => {
+      const res = await fetch(`${base}/v1/chat/completions`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ model: 'omfm/fast', messages: [{ role: 'user', content: 'hi' }] }) });
+      const body = await res.json() as any;
+      expect(body.model).toBe('slow:free');
+      expect(seen[0].model).toBe('slow:free');
+    });
+  });
+
+  it('accepts Claude-style group aliases on Anthropic requests', async () => {
+    const store = tempStore();
+    store.updateModelGroup('capable', ['slow:free']);
+    const seen: any[] = [];
+    const mockFetch: FetchLike = async (url, init) => {
+      seen.push({ url: String(url), body: JSON.parse(String(init?.body)) });
+      return Response.json({ id: 'msg_1', type: 'message', role: 'assistant', model: seen.at(-1).body.model, content: [{ type: 'text', text: 'hello' }], usage: { input_tokens: 1, output_tokens: 1 } });
+    };
+    await withServer(store, mockFetch, async (base) => {
+      const res = await fetch(`${base}/anthropic/v1/messages`, { method: 'POST', headers: { 'Content-Type': 'application/json', 'anthropic-version': '2023-06-01', 'x-api-key': 'local' }, body: JSON.stringify({ model: 'opus', max_tokens: 10, messages: [{ role: 'user', content: 'hi' }] }) });
+      const body = await res.json() as any;
+      expect(body.model).toBe('slow:free');
+      expect(seen[0].body.model).toBe('slow:free');
+    });
+  });
+
   it('routes selected NVIDIA models with their upstream model id', async () => {
     const root = fs.mkdtempSync(path.join(os.tmpdir(), 'omfm-nvidia-server-'));
     roots.push(root);

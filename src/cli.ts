@@ -35,7 +35,7 @@ function parsePort(value: string | boolean | undefined): number | undefined {
 }
 
 function help(): void {
-  console.log(`oh-my-free-models 0.0.1\n\nUsage:\n  omfm model [--all] [--select id1,id2] [--best] [--json]\n  omfm start [--port 4567] [--daemon]\n  omfm stop\n  omfm status\n  omfm doctor\n\nEnvironment:\n  OPENROUTER_API_KEY and NVIDIA_API_KEY are read from the process first, then ~/.oh-my-free-models/.env\n`);
+  console.log(`oh-my-free-models 0.0.1\n\nUsage:\n  omfm model [--all] [--select id1,id2] [--group fast|balanced|capable] [--best] [--json]\n  omfm start [--port 4567] [--daemon]\n  omfm stop\n  omfm status\n  omfm doctor\n\nEnvironment:\n  OPENROUTER_API_KEY and NVIDIA_API_KEY are read from the process first, then ~/.oh-my-free-models/.env\n`);
 }
 
 async function main(): Promise<void> {
@@ -46,10 +46,12 @@ async function main(): Promise<void> {
   }
   if (parsed.command === 'model') {
     const selectFlag = parsed.flags.get('select');
+    const groupFlag = parsed.flags.get('group');
     await runModelCommand({
       all: parsed.flags.has('all'),
       json: parsed.flags.has('json'),
       best: parsed.flags.has('best'),
+      group: typeof groupFlag === 'string' ? groupFlag : undefined,
       select: typeof selectFlag === 'string' ? selectFlag.split(',').map((x) => x.trim()).filter(Boolean) : undefined,
     });
     return;

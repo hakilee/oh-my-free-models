@@ -4,7 +4,7 @@ import { requireAnyProviderApiKey } from '../config/env.js';
 import { loadModelCatalog } from '../providers/catalog.js';
 import { postNvidiaChatCompletion } from '../providers/nvidia.js';
 import { isFreeOpenRouterModel, postOpenRouterAnthropicMessage, postOpenRouterChatCompletion } from '../providers/openrouter.js';
-import { FetchLike, OmfmModel, ProviderApiKeys } from '../types.js';
+import { FetchLike, ModelGroups, OmfmModel, ProviderApiKeys } from '../types.js';
 import { orderedCandidates } from '../latency/router.js';
 import { anthropicToOpenAI, openAIToAnthropic } from './translate.js';
 import { pipeOpenAIStreamAsAnthropic, pipeWebStreamToNode } from './sse.js';
@@ -91,8 +91,8 @@ function requestedModelForRouting(models: OmfmModel[], requestedModel: unknown):
   return upstreamMatch?.id ?? requestedModel;
 }
 
-function orderedSelectedModelIds(models: OmfmModel[], observations: ReturnType<ConfigStore['readLatency']>, requestedModel: unknown): string[] {
-  return orderedCandidates(models.map((model) => model.id), observations, requestedModelForRouting(models, requestedModel));
+function orderedSelectedModelIds(models: OmfmModel[], observations: ReturnType<ConfigStore['readLatency']>, requestedModel: unknown, modelGroups: ModelGroups): string[] {
+  return orderedCandidates(models.map((model) => model.id), observations, requestedModelForRouting(models, requestedModel), modelGroups);
 }
 
 function noUsableModelResponse(res: ServerResponse, lastError: unknown): void {
@@ -143,7 +143,7 @@ export function createOmfmServer(options: ServerOptions = {}): http.Server {
         const selected = await selectedFreeModels(store, apiKeys, fetchImpl);
         assertSelectedFree(selected);
         const byId = new Map(selected.map((model) => [model.id, model]));
-        const candidateIds = orderedSelectedModelIds(selected, store.readLatency(), body.model);
+        const candidateIds = orderedSelectedModelIds(selected, store.readLatency(), body.model, store.readConfig().modelGroups);
         let lastError: unknown;
         let attempts = 0;
         for (const modelId of candidateIds) {
@@ -188,7 +188,7 @@ export function createOmfmServer(options: ServerOptions = {}): http.Server {
         const selected = await selectedFreeModels(store, apiKeys, fetchImpl);
         assertSelectedFree(selected);
         const byId = new Map(selected.map((model) => [model.id, model]));
-        const candidateIds = orderedSelectedModelIds(selected, store.readLatency(), body.model);
+        const candidateIds = orderedSelectedModelIds(selected, store.readLatency(), body.model, store.readConfig().modelGroups);
         let lastError: unknown;
         let attempts = 0;
         for (const modelId of candidateIds) {

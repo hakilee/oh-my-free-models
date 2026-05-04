@@ -2,6 +2,10 @@ export type JsonObject = Record<string, unknown>;
 
 export type ModelSource = 'openrouter' | 'nvidia';
 
+export type ModelGroupName = 'fast' | 'balanced' | 'capable';
+
+export type ModelGroups = Record<ModelGroupName, string[]>;
+
 export interface OmfmModel {
   id: string;
   upstreamId?: string;
@@ -29,6 +33,7 @@ export interface LatencyObservation {
 export interface OmfmConfig {
   port: number;
   selectedModelIds: string[];
+  modelGroups: ModelGroups;
 }
 
 export interface ModelCache {

@@ -46,12 +46,13 @@ Picker 指示符：
 
 Picker 按鍵：
 
+- `Tab`、`Left`/`Right`、`h`/`l` 或 `[`/`]` — 切換頂部標籤（`All`、`Fast`、`Balanced`、`Capable`）
 - `Up`／`Down` 或 `j`／`k` — 移動游標
 - `Space` — 切換選取狀態
 - `Enter` — 儲存
 - `q` 或 `Esc` — 取消
 
-儲存後的選取清單保留顯示時的順序。當 latency 資料尚未建立時，這個順序會作為確定性的 fallback 路由依據。
+`All` 標籤管理全域可路由模型清單。群組標籤會把模型分配到 `fast`、`balanced`、`capable`；在群組中選取模型也會自動讓它保留在 `All` 的候選清單中。儲存後的選取清單保留顯示時的順序。當 latency 資料尚未建立時，這個順序會作為確定性的 fallback 路由依據。
 
 Latency probe 以小規模並行批次執行，速率設定保守。`rate-limit` 回應只標記該模型這一列，其餘列繼續 probe。`quota`／付款相關回應會停止尚未開始的 probe，但不會覆蓋已快取的 latency。
 
@@ -60,10 +61,14 @@ Latency probe 以小規模並行批次執行，速率設定保守。`rate-limit`
 ```bash
 omfm model --all
 omfm model --select google/gemini-2.0-flash-exp:free,meta-llama/llama-3.2-3b-instruct:free
+omfm model --group fast --select google/gemini-2.0-flash-exp:free
+omfm model --group capable --best
 omfm model --json
 omfm model --best
 omfm model --best --json
 ```
+
+使用 `--group fast|balanced|capable` 可以替不同的 coding-agent mode 維護獨立模型池。請求 `omfm/fast`、`omfm/balanced` 或 `omfm/capable` 時只會在對應群組內路由；`haiku`、`sonnet`、`opus` 也會被視為易記的 alias。
 
 ## 4. 啟動本機代理
 
@@ -88,6 +93,8 @@ omfm start --port 4600
 ```
 
 ## 5. 連接客戶端
+
+如果客戶端支援依 mode 指定模型，可以使用 `omfm/fast`、`omfm/balanced` 或 `omfm/capable`。`haiku`、`sonnet`、`opus` 會作為這三個群組的 alias 生效。
 
 ### OpenAI 相容客戶端
 
@@ -132,6 +139,7 @@ omfm doctor
 - 只有透過 `omfm model` 選取的模型才會列入路由候選。
 - 請求中若指定了已選取的模型名稱，`omfm` 會直接路由到該模型。帶有 provider 前綴的本機模型名稱，也能解析到對應的 upstream 模型 ID。
 - 未指定或無法識別的模型名稱，會路由到本機實測 latency 最低的已選模型。
+- 群組模型名（`omfm/fast`、`omfm/balanced`、`omfm/capable`，以及 `haiku`/`sonnet`/`opus`）在對應群組有已選模型時只會在該群組內路由；空群組 fallback 到完整已選清單。
 - 剛觸發 rate-limit（HTTP 429）或 quota（HTTP 402）的模型，約 10 分鐘內不列入候選。若所有已選模型都在 cooling 狀態，則 fallback 到完整的 latency 排序清單，確保請求仍能繼續。
 - 請求成功後會更新本機 latency 快取。
 - 沒有 latency 資料時，fallback 到 picker 儲存的選取順序。互動式 picker 與 `omfm model --all` 以推薦排序儲存該順序。

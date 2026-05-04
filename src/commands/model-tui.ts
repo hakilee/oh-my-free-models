@@ -2,21 +2,28 @@ import { Writable, Readable } from 'node:stream';
 import { ConfigStore } from '../config/store.js';
 import { probeProviderModel } from '../latency/probe.js';
 import { ProbeTerminalState, runProbeScheduler } from '../latency/probe-scheduler.js';
-import { FetchLike, OmfmModel, ProviderApiKeys } from '../types.js';
+import { DEFAULT_MODEL_GROUPS, MODEL_GROUP_NAMES } from '../model-groups.js';
+import { FetchLike, ModelGroupName, ModelGroups, OmfmModel, ProviderApiKeys } from '../types.js';
 import { buildModelRows, ModelDisplayRow, recommendModel, renderStaticModelTable, sortModelRows } from './model-view.js';
 
 export interface ModelTuiResult {
   selectedModelIds: string[];
+  modelGroups: ModelGroups;
   saved: boolean;
   interrupted: boolean;
   terminalState: ProbeTerminalState | 'idle';
 }
 
+export type ModelTuiTab = 'all' | ModelGroupName;
+
 interface RawModelTuiOptions {
   rows: ModelDisplayRow[];
+  selectedModelIds: string[];
+  modelGroups: ModelGroups;
+  initialTab?: ModelTuiTab;
   stdin?: NodeJS.ReadStream | Readable;
   stdout?: NodeJS.WriteStream | Writable;
-  save: (selectedModelIds: string[]) => void;
+  save: (selectedModelIds: string[], modelGroups: ModelGroups) => void;
   startProbes: (handlers: { onRow: (row: Partial<ModelDisplayRow> & { modelId: string }) => void; signal: AbortSignal }) => Promise<ProbeTerminalState>;
   isTTY?: boolean;
 }
@@ -24,6 +31,8 @@ interface RawModelTuiOptions {
 export interface ModelTuiOptions {
   models: OmfmModel[];
   selectedModelIds: string[];
+  modelGroups?: ModelGroups;
+  initialTab?: ModelTuiTab;
   store: ConfigStore;
   apiKeys: ProviderApiKeys;
   stdin?: NodeJS.ReadStream | Readable;
@@ -37,6 +46,7 @@ const ENABLE_MOUSE = `${ESC}[?1000h${ESC}[?1006h`;
 const DISABLE_MOUSE = `${ESC}[?1000l${ESC}[?1006l`;
 const ENTER_ALT_SCREEN = `${ESC}[?1049h`;
 const EXIT_ALT_SCREEN = `${ESC}[?1049l`;
+const TABS: ModelTuiTab[] = ['all', ...MODEL_GROUP_NAMES];
 
 function write(out: NodeJS.WriteStream | Writable, value: string): void {
   out.write(value);
@@ -87,6 +97,8 @@ function keyName(chunk: Buffer | string): string {
   const mouseWheel = mouseWheelName(value);
   if (mouseWheel) return mouseWheel;
   if (value === '\u0003') return 'ctrl-c';
+  if (value === '\t' || value === 'l' || value === ']' || value === '\u001b[C') return 'next-tab';
+  if (value === '\u001b[Z' || value === 'h' || value === '[' || value === '\u001b[D') return 'prev-tab';
   if (value === '\r' || value === '\n') return 'enter';
   if (value === ' ') return 'space';
   if (value === 'j' || value === '\u001b[B') return 'down';
@@ -99,13 +111,41 @@ function keyName(chunk: Buffer | string): string {
   return value;
 }
 
+function cloneModelGroups(modelGroups: ModelGroups): ModelGroups {
+  return {
+    fast: [...modelGroups.fast],
+    balanced: [...modelGroups.balanced],
+    capable: [...modelGroups.capable],
+  };
+}
+
+function normalizeTab(value: ModelTuiTab | undefined): ModelTuiTab {
+  return value && TABS.includes(value) ? value : 'all';
+}
+
+function tabLabel(tab: ModelTuiTab): string {
+  if (tab === 'all') return 'All';
+  return tab[0]!.toUpperCase() + tab.slice(1);
+}
+
 async function runRawModelTui(options: RawModelTuiOptions): Promise<ModelTuiResult> {
   const stdin = options.stdin ?? process.stdin;
   const stdout = options.stdout ?? process.stdout;
   const rows = options.rows.map((row) => ({ ...row }));
-  const initialSelectedModelIds = rows.filter((row) => row.selected).map((row) => row.model.id);
-  const selected = new Set(initialSelectedModelIds);
+  const modelIds = new Set(rows.map((row) => row.model.id));
+  const initialModelGroups = cloneModelGroups(options.modelGroups);
+  const selected = new Set(options.selectedModelIds.filter((id) => modelIds.has(id)));
+  const groupSelections: ModelGroups = {
+    fast: options.modelGroups.fast.filter((id) => modelIds.has(id)),
+    balanced: options.modelGroups.balanced.filter((id) => modelIds.has(id)),
+    capable: options.modelGroups.capable.filter((id) => modelIds.has(id)),
+  };
+  for (const group of MODEL_GROUP_NAMES) {
+    for (const id of groupSelections[group]) selected.add(id);
+  }
+  const initialSelectedModelIds = rows.filter((row) => selected.has(row.model.id)).map((row) => row.model.id);
   const controller = new AbortController();
+  let activeTab = normalizeTab(options.initialTab);
   let cursor = 0;
   let scrollOffset = 0;
   let done = false;
@@ -116,7 +156,7 @@ async function runRawModelTui(options: RawModelTuiOptions): Promise<ModelTuiResu
 
   const tableViewportRows = () => {
     const terminalRows = terminalDimension(stdout, 'LINES', 24);
-    const fixedRows = terminalState === 'quota-deferred' ? 4 : 3; // title, legend, optional note, table header
+    const fixedRows = terminalState === 'quota-deferred' ? 5 : 4; // title, tabs, legend, optional note, table header
     return Math.max(1, terminalRows - fixedRows);
   };
 
@@ -134,20 +174,35 @@ async function runRawModelTui(options: RawModelTuiOptions): Promise<ModelTuiResu
   };
 
   const clearLine = (value: string) => `${value}${ESC}[K`;
+  const activeSet = () => activeTab === 'all' ? selected : new Set(groupSelections[activeTab]);
+  const orderedSelected = (ids: Set<string>) => rows.filter((row) => ids.has(row.model.id)).map((row) => row.model.id);
+  const orderedGroups = (): ModelGroups => ({
+    fast: orderedSelected(new Set(groupSelections.fast)),
+    balanced: orderedSelected(new Set(groupSelections.balanced)),
+    capable: orderedSelected(new Set(groupSelections.capable)),
+  });
+  const renderTabs = () => TABS
+    .map((tab) => {
+      const count = tab === 'all' ? selected.size : groupSelections[tab].length;
+      const label = `${tabLabel(tab)} ${count}`;
+      return tab === activeTab ? `${ESC}[7m ${label} ${ESC}[0m` : ` ${label} `;
+    })
+    .join(' ');
 
   const render = () => {
     constrainCursorAndScroll();
     const viewportRows = tableViewportRows();
-    const viewRows = rows.map((row) => ({ ...row, selected: selected.has(row.model.id) }));
+    const selectedForTab = activeSet();
+    const viewRows = rows.map((row) => ({ ...row, selected: selectedForTab.has(row.model.id) }));
     const visibleRows = viewRows.slice(scrollOffset, scrollOffset + viewportRows);
     const showingStart = rows.length === 0 ? 0 : scrollOffset + 1;
     const showingEnd = Math.min(rows.length, scrollOffset + viewportRows);
     const maxWidth = Math.max(20, terminalDimension(stdout, 'COLUMNS', 100) - 1);
-    const selectedCount = [...selected].length;
     const status = terminalState === 'idle' ? 'probing…' : terminalState;
     const lines = [
-      clearLine(`omfm model  •  ${selectedCount} selected  •  Rows ${showingStart}-${showingEnd}/${rows.length}  •  ${status}`),
-      clearLine('▶ current   ● selected   ○ unselected   ↑↓/jk move   PgUp/PgDn scroll   Space toggle   Enter save   q cancel'),
+      clearLine(`omfm model  •  ${tabLabel(activeTab)} pool  •  Rows ${showingStart}-${showingEnd}/${rows.length}  •  ${status}`),
+      clearLine(renderTabs()),
+      clearLine('▶ current   ● in active tab   ○ not in tab   Tab/h/l switch   ↑↓/jk move   Space toggle   Enter save   q cancel'),
       ...(terminalState === 'quota-deferred' ? [clearLine('Probe note: quota/payment limit reached; remaining rows deferred.')] : []),
       renderStaticModelTable(visibleRows, { activeIndex: cursor - scrollOffset, colorLatency: true, colorRecommendation: true, interactive: true, maxWidth, measureRows: viewRows, minBodyRows: viewportRows })
         .split('\n')
@@ -204,25 +259,43 @@ async function runRawModelTui(options: RawModelTuiOptions): Promise<ModelTuiResu
       const key = keyName(chunk);
       if (key === 'ctrl-c') {
         interrupted = true;
-        finish({ selectedModelIds: initialSelectedModelIds, saved: false, interrupted });
+        finish({ selectedModelIds: initialSelectedModelIds, modelGroups: initialModelGroups, saved: false, interrupted });
         return;
       }
       if (key === 'enter') {
         saved = true;
-        const selectedModelIds = rows.filter((row) => selected.has(row.model.id)).map((row) => row.model.id);
-        options.save(selectedModelIds);
-        finish({ selectedModelIds, saved, interrupted: false });
+        const selectedModelIds = orderedSelected(selected);
+        const modelGroups = orderedGroups();
+        options.save(selectedModelIds, modelGroups);
+        finish({ selectedModelIds, modelGroups, saved, interrupted: false });
         return;
       }
       if (key === 'quit') {
-        finish({ selectedModelIds: initialSelectedModelIds, saved: false, interrupted: false });
+        finish({ selectedModelIds: initialSelectedModelIds, modelGroups: initialModelGroups, saved: false, interrupted: false });
         return;
       }
-      if (key === 'space') {
+      if (key === 'next-tab' || key === 'prev-tab') {
+        const currentIndex = TABS.indexOf(activeTab);
+        const delta = key === 'next-tab' ? 1 : -1;
+        activeTab = TABS[(currentIndex + delta + TABS.length) % TABS.length]!;
+        cursor = 0;
+        scrollOffset = 0;
+      } else if (key === 'space') {
         const id = rows[cursor]?.model.id;
         if (id) {
-          if (selected.has(id)) selected.delete(id);
-          else selected.add(id);
+          if (activeTab === 'all') {
+            if (selected.has(id)) {
+              selected.delete(id);
+              for (const group of MODEL_GROUP_NAMES) groupSelections[group] = groupSelections[group].filter((candidate) => candidate !== id);
+            } else {
+              selected.add(id);
+            }
+          } else if (groupSelections[activeTab].includes(id)) {
+            groupSelections[activeTab] = groupSelections[activeTab].filter((candidate) => candidate !== id);
+          } else {
+            groupSelections[activeTab] = [...groupSelections[activeTab], id];
+            selected.add(id);
+          }
         }
       } else if (key === 'down') {
         cursor = Math.min(rows.length - 1, cursor + 1);
@@ -256,6 +329,9 @@ export async function runModelTui(options: ModelTuiOptions): Promise<ModelTuiRes
   const selectedIds = new Set(options.selectedModelIds);
   return runRawModelTui({
     rows: sortModelRows(buildModelRows(options.models, selectedIds, options.store.readLatency()), { selectedFirst: true }),
+    selectedModelIds: options.selectedModelIds,
+    modelGroups: options.modelGroups ?? DEFAULT_MODEL_GROUPS,
+    initialTab: options.initialTab,
     stdin: options.stdin,
     stdout: options.stdout,
     save: () => undefined,

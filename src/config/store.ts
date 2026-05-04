@@ -1,6 +1,7 @@
 import fs from 'node:fs';
 import path from 'node:path';
-import { DaemonState, LatencyObservation, ModelCache, OmfmConfig } from '../types.js';
+import { DEFAULT_MODEL_GROUPS, normalizeModelGroups } from '../model-groups.js';
+import { DaemonState, LatencyObservation, ModelCache, ModelGroupName, OmfmConfig } from '../types.js';
 import { getConfigPath, getConfigRoot, getDaemonPath, getLatencyPath, getModelCachePath } from './paths.js';
 
 const DEFAULT_PORT = 4567;
@@ -65,6 +66,7 @@ export class ConfigStore {
     return {
       port: typeof config.port === 'number' ? config.port : DEFAULT_PORT,
       selectedModelIds: Array.isArray(config.selectedModelIds) ? config.selectedModelIds.filter((x): x is string => typeof x === 'string') : [],
+      modelGroups: normalizeModelGroups(config.modelGroups ?? DEFAULT_MODEL_GROUPS),
     };
   }
 
@@ -75,6 +77,18 @@ export class ConfigStore {
   updateSelectedModelIds(selectedModelIds: string[]): OmfmConfig {
     const config = this.readConfig();
     const next = { ...config, selectedModelIds: [...new Set(selectedModelIds)] };
+    this.writeConfig(next);
+    return next;
+  }
+
+  updateModelGroup(group: ModelGroupName, modelIds: string[]): OmfmConfig {
+    const config = this.readConfig();
+    const groupIds = [...new Set(modelIds)];
+    const next = {
+      ...config,
+      selectedModelIds: [...new Set([...config.selectedModelIds, ...groupIds])],
+      modelGroups: { ...config.modelGroups, [group]: groupIds },
+    };
     this.writeConfig(next);
     return next;
   }

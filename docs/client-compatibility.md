@@ -15,6 +15,7 @@ Use this route for OpenAI-compatible client behavior, Anthropic-compatible clien
 
 - OpenAI-compatible clients should set `baseURL=http://localhost:4567/v1`.
 - Anthropic-compatible clients should set `ANTHROPIC_BASE_URL=http://localhost:4567/anthropic` and may use local placeholder auth because upstream auth comes from the provider key configured for the routed model.
+- Clients that support per-mode model settings can request `omfm/fast`, `omfm/balanced`, or `omfm/capable`; `haiku`, `sonnet`, and `opus` are accepted aliases for those same groups.
 - Anthropic requests first try a provider-supplied Anthropic-compatible endpoint when one exists, then fall back to minimal text-only Anthropic-to-OpenAI translation for supported cases.
 - Tool-use and multimodal Anthropic blocks are best-effort pass-through when a provider exposes an Anthropic-compatible surface; otherwise they remain unsupported or rejected.
 
@@ -36,4 +37,3 @@ Use this route for OpenAI-compatible client behavior, Anthropic-compatible clien
 ## Update rule
 
 Update this page and `research/client-compatibility.md` when endpoint support, translation behavior, streaming behavior, or client setup guidance changes. Keep client-specific experiments in research/decisions.
-

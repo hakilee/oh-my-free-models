@@ -4,8 +4,9 @@ import { ConfigStore } from '../config/store.js';
 import { ProbeResult, probeProviderModel } from '../latency/probe.js';
 import { runProbeScheduler } from '../latency/probe-scheduler.js';
 import { isCoolingDown } from '../latency/router.js';
+import { normalizeModelGroupName } from '../model-groups.js';
 import { loadModelCatalog } from '../providers/catalog.js';
-import { FetchLike, ModelSource, OmfmModel, ProviderApiKeys } from '../types.js';
+import { FetchLike, ModelGroupName, ModelSource, OmfmModel, ProviderApiKeys } from '../types.js';
 import { buildModelRows, renderStaticModelTable, sortModelRows } from './model-view.js';
 import { runModelTui } from './model-tui.js';
 
@@ -21,6 +22,7 @@ export interface RunModelCommandOptions {
   all?: boolean;
   json?: boolean;
   best?: boolean;
+  group?: string;
   store?: ConfigStore;
   fetchImpl?: FetchLike;
   env?: NodeJS.ProcessEnv;
@@ -43,6 +45,13 @@ function candidateModels(models: OmfmModel[], selectedIds: string[]): OmfmModel[
   if (selectedIds.length === 0) return models;
   const byId = new Map(models.map((model) => [model.id, model]));
   return selectedIds.map((id) => byId.get(id)).filter((model): model is OmfmModel => Boolean(model));
+}
+
+function candidateIdsForGroup(config: ReturnType<ConfigStore['readConfig']>, group: ModelGroupName | undefined): string[] {
+  if (!group) return config.selectedModelIds;
+  const selected = new Set(config.selectedModelIds);
+  const ids = [...new Set(config.modelGroups[group])].filter((id) => selected.has(id));
+  return ids.length > 0 ? ids : config.selectedModelIds;
 }
 
 function bestCachedModel(models: OmfmModel[], store: ConfigStore): { model: OmfmModel; latencyMs: number } | undefined {
@@ -104,8 +113,10 @@ export async function runModelCommand(options: RunModelCommandOptions = {}): Pro
 
   const config = store.readConfig();
   const current = new Set(config.selectedModelIds);
+  const group = normalizeModelGroupName(options.group);
+  if (options.group && !group) throw new Error(`Invalid --group value: ${options.group}. Use fast, balanced, or capable.`);
   if (options.best) {
-    const result = await runBestModel({ models: candidateModels(models, config.selectedModelIds), apiKeys, store, fetchImpl: options.fetchImpl, runScheduler: options.runScheduler });
+    const result = await runBestModel({ models: candidateModels(models, candidateIdsForGroup(config, group)), apiKeys, store, fetchImpl: options.fetchImpl, runScheduler: options.runScheduler });
     if (options.json) {
       writeLine(stdout, JSON.stringify({ bestModelId: result.model.id, model: result.model, latencyMs: result.latencyMs, status: result.status, probed: result.probed }, null, 2));
     } else {
@@ -115,31 +126,43 @@ export async function runModelCommand(options: RunModelCommandOptions = {}): Pro
   }
 
   if (options.all) {
-    store.updateSelectedModelIds(sortModelRows(buildModelRows(models, new Set(), store.readLatency())).map((row) => row.model.id));
+    const ids = sortModelRows(buildModelRows(models, new Set(), store.readLatency())).map((row) => row.model.id);
+    if (group) store.updateModelGroup(group, ids);
+    else store.updateSelectedModelIds(ids);
   } else if (options.select) {
     const freeIds = new Set(models.map((model) => model.id));
     const invalid = options.select.filter((id) => !freeIds.has(id));
     if (invalid.length > 0) {
       throw new Error(`Selected model IDs are not current free models: ${invalid.join(', ')}`);
     }
-    store.updateSelectedModelIds(options.select);
+    if (group) store.updateModelGroup(group, options.select);
+    else store.updateSelectedModelIds(options.select);
   } else if (!options.json && stdout.isTTY) {
     const runTui = options.runTui ?? runModelTui;
     const result = await runTui({
       models,
       selectedModelIds: [...current],
+      modelGroups: config.modelGroups,
+      initialTab: group ?? 'all',
       store,
       apiKeys,
       stdin: options.stdin,
       stdout: stdout as Writable,
       fetchImpl: options.fetchImpl,
     });
-    if (result.saved) store.updateSelectedModelIds(result.selectedModelIds);
+    if (result.saved) {
+      store.writeConfig({
+        ...store.readConfig(),
+        selectedModelIds: result.selectedModelIds,
+        modelGroups: result.modelGroups,
+      });
+    }
     if (result.interrupted) process.exitCode = 130;
   }
 
   if (options.json) {
-    writeLine(stdout, JSON.stringify({ models, selectedModelIds: store.readConfig().selectedModelIds }, null, 2));
+    const nextConfig = store.readConfig();
+    writeLine(stdout, JSON.stringify({ models, selectedModelIds: nextConfig.selectedModelIds, modelGroups: nextConfig.modelGroups }, null, 2));
     return;
   }
 

@@ -73,6 +73,13 @@ describe('model command integration', () => {
     await expect(runModelCommand({ select: ['missing'], store, fetchImpl: okFetch(), env: { OPENROUTER_API_KEY: 'key' } as NodeJS.ProcessEnv, stdout: output(false).stream, runTui })).rejects.toThrow('not current');
   });
 
+  it('--group --select writes that model group and keeps group models eligible', async () => {
+    const store = tempStore();
+    await runModelCommand({ group: 'fast', select: ['beta/b:free'], store, fetchImpl: okFetch(), env: { OPENROUTER_API_KEY: 'key' } as NodeJS.ProcessEnv, stdout: output(false).stream });
+    expect(store.readConfig().modelGroups.fast).toEqual(['beta/b:free']);
+    expect(store.readConfig().selectedModelIds).toEqual(['beta/b:free']);
+  });
+
   it('--all selects all and non-TTY static output does not open TUI', async () => {
     const store = tempStore();
     const out = output(false);
@@ -106,6 +113,32 @@ describe('model command integration', () => {
     });
     expect(out.text()).toBe('beta/b:free\n');
     expect(store.readLatency()['beta/b:free']).toMatchObject({ latencyMs: 20, lastStatus: 'ok' });
+  });
+
+  it('--best --group probes only configured group candidates', async () => {
+    const store = tempStore();
+    store.updateSelectedModelIds(['alpha/a:free', 'beta/b:free']);
+    store.updateModelGroup('fast', ['alpha/a:free']);
+    const out = output(false);
+    const probed: string[] = [];
+    await runModelCommand({
+      best: true,
+      group: 'haiku',
+      store,
+      fetchImpl: okFetch(),
+      env: { OPENROUTER_API_KEY: 'key' } as NodeJS.ProcessEnv,
+      stdout: out.stream,
+      runScheduler: async (options) => {
+        for (const model of options.models) {
+          probed.push(model.id);
+          const result = { modelId: model.id, status: 'ok' as const, latencyMs: 10, httpStatus: 200 };
+          options.onUpdate?.({ modelId: model.id, result });
+        }
+        return 'completed';
+      },
+    });
+    expect(probed).toEqual(['alpha/a:free']);
+    expect(out.text()).toBe('alpha/a:free\n');
   });
 
   it('--best --json falls back to cached latency when fresh probes do not succeed', async () => {
@@ -149,9 +182,25 @@ describe('model command integration', () => {
     store.updateSelectedModelIds(['alpha/a:free']);
     const runTui = vi.fn(async (options) => {
       expect(options.selectedModelIds).toEqual(['alpha/a:free']);
-      return { saved: true, interrupted: false, selectedModelIds: ['beta/b:free'], terminalState: 'aborted' };
+      expect(options.initialTab).toBe('all');
+      return { saved: true, interrupted: false, selectedModelIds: ['beta/b:free'], modelGroups: { fast: [], balanced: [], capable: [] }, terminalState: 'aborted' };
     });
     await runModelCommand({ store, fetchImpl: okFetch(), env: { OPENROUTER_API_KEY: 'key' } as NodeJS.ProcessEnv, stdout: output(true).stream, runTui });
     expect(store.readConfig().selectedModelIds).toEqual(['beta/b:free']);
+  });
+
+  it('TTY --group edits the requested group', async () => {
+    const store = tempStore();
+    store.updateSelectedModelIds(['alpha/a:free']);
+    store.updateModelGroup('balanced', ['alpha/a:free']);
+    const runTui = vi.fn(async (options) => {
+      expect(options.selectedModelIds).toEqual(['alpha/a:free']);
+      expect(options.modelGroups.balanced).toEqual(['alpha/a:free']);
+      expect(options.initialTab).toBe('balanced');
+      return { saved: true, interrupted: false, selectedModelIds: ['alpha/a:free', 'beta/b:free'], modelGroups: { fast: [], balanced: ['beta/b:free'], capable: [] }, terminalState: 'aborted' };
+    });
+    await runModelCommand({ group: 'sonnet', store, fetchImpl: okFetch(), env: { OPENROUTER_API_KEY: 'key' } as NodeJS.ProcessEnv, stdout: output(true).stream, runTui });
+    expect(store.readConfig().modelGroups.balanced).toEqual(['beta/b:free']);
+    expect(store.readConfig().selectedModelIds).toEqual(['alpha/a:free', 'beta/b:free']);
   });
 });

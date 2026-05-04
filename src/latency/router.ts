@@ -1,10 +1,11 @@
-import { LatencyObservation } from '../types.js';
+import { selectedGroupModelIds } from '../model-groups.js';
+import { LatencyObservation, ModelGroups } from '../types.js';
 
 const GENERIC_MODELS = new Set(['', 'auto', 'default', 'omfm', 'openrouter/free']);
 
 export interface RouteChoice {
   modelId: string;
-  reason: 'requested-selected' | 'lowest-latency' | 'fallback-order';
+  reason: 'requested-selected' | 'model-group' | 'lowest-latency' | 'fallback-order';
 }
 
 function latencyValue(obs: LatencyObservation | undefined): number | undefined {
@@ -52,18 +53,36 @@ export function chooseModel(selectedModelIds: string[], observations: Record<str
   return { modelId: selectedModelIds[0]!, reason: 'fallback-order' };
 }
 
-export function orderedCandidates(selectedModelIds: string[], observations: Record<string, LatencyObservation>, requestedModel?: string): string[] {
-  const first = chooseModel(selectedModelIds, observations, requestedModel).modelId;
-  const rest = selectedModelIds.filter((id) => id !== first).sort((a, b) => {
+function candidatePool(selectedModelIds: string[], requestedModel?: string, modelGroups?: ModelGroups): { ids: string[]; grouped: boolean } {
+  if (requestedModel && !GENERIC_MODELS.has(requestedModel) && selectedModelIds.includes(requestedModel)) {
+    return { ids: selectedModelIds, grouped: false };
+  }
+  const ids = modelGroups ? selectedGroupModelIds(selectedModelIds, modelGroups, requestedModel) : undefined;
+  return ids ? { ids, grouped: true } : { ids: selectedModelIds, grouped: false };
+}
+
+export function chooseGroupedModel(selectedModelIds: string[], observations: Record<string, LatencyObservation>, requestedModel?: string, modelGroups?: ModelGroups): RouteChoice {
+  if (requestedModel && !GENERIC_MODELS.has(requestedModel) && selectedModelIds.includes(requestedModel)) {
+    return { modelId: requestedModel, reason: 'requested-selected' };
+  }
+  const pool = candidatePool(selectedModelIds, requestedModel, modelGroups);
+  const choice = chooseModel(pool.ids, observations, requestedModel);
+  return pool.grouped && choice.reason !== 'requested-selected' ? { ...choice, reason: 'model-group' } : choice;
+}
+
+export function orderedCandidates(selectedModelIds: string[], observations: Record<string, LatencyObservation>, requestedModel?: string, modelGroups?: ModelGroups): string[] {
+  const pool = candidatePool(selectedModelIds, requestedModel, modelGroups);
+  const first = chooseGroupedModel(selectedModelIds, observations, requestedModel, modelGroups).modelId;
+  const rest = pool.ids.filter((id) => id !== first).sort((a, b) => {
     const ra = statusRank(observations[a]);
     const rb = statusRank(observations[b]);
     if (ra !== rb) return ra - rb;
     const la = latencyValue(observations[a]);
     const lb = latencyValue(observations[b]);
-    if (la !== undefined && lb !== undefined) return la - lb || selectedModelIds.indexOf(a) - selectedModelIds.indexOf(b) || a.localeCompare(b);
+    if (la !== undefined && lb !== undefined) return la - lb || pool.ids.indexOf(a) - pool.ids.indexOf(b) || a.localeCompare(b);
     if (la !== undefined) return -1;
     if (lb !== undefined) return 1;
-    return selectedModelIds.indexOf(a) - selectedModelIds.indexOf(b) || a.localeCompare(b);
+    return pool.ids.indexOf(a) - pool.ids.indexOf(b) || a.localeCompare(b);
   });
   return [first, ...rest];
 }

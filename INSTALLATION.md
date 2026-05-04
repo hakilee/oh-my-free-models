@@ -46,12 +46,13 @@ Picker indicators:
 
 Picker keys:
 
+- `Tab`, `Left`/`Right`, `h`/`l`, or `[`/`]` — switch the top tabs (`All`, `Fast`, `Balanced`, `Capable`)
 - `Up`/`Down` or `j`/`k` — move
 - `Space` — toggle selection
 - `Enter` — save
 - `q` or `Esc` — cancel
 
-Saved selections keep the displayed order. That order becomes the deterministic routing fallback when no latency is known yet.
+The `All` tab controls the global eligible model list. Group tabs assign models to `fast`, `balanced`, and `capable`; selecting a model in a group also keeps it eligible in `All`. Saved selections keep the displayed order. That order becomes the deterministic routing fallback when no latency is known yet.
 
 Latency probes run in small parallel batches with conservative pacing. A `rate-limit` response marks that model and lets the remaining rows continue probing. A `quota`/payment response stops any probes not yet started for that run, but doesn't overwrite cached latency.
 
@@ -60,10 +61,14 @@ When stdout is not a TTY, `omfm model` prints a static ANSI-free table and skips
 ```bash
 omfm model --all
 omfm model --select google/gemini-2.0-flash-exp:free,meta-llama/llama-3.2-3b-instruct:free
+omfm model --group fast --select google/gemini-2.0-flash-exp:free
+omfm model --group capable --best
 omfm model --json
 omfm model --best
 omfm model --best --json
 ```
+
+Use `--group fast|balanced|capable` to maintain separate model pools for coding-agent modes. Requests for `omfm/fast`, `omfm/balanced`, or `omfm/capable` route inside that group; `haiku`, `sonnet`, and `opus` are accepted as friendly aliases.
 
 ## 4. Start the local proxy
 
@@ -88,6 +93,8 @@ omfm start --port 4600
 ```
 
 ## 5. Connect clients
+
+For clients that let you choose a model per mode, use `omfm/fast`, `omfm/balanced`, or `omfm/capable`. `haiku`, `sonnet`, and `opus` are accepted as aliases for those three groups.
 
 ### OpenAI-compatible clients
 
@@ -132,6 +139,7 @@ omfm doctor
 - Only models you selected with `omfm model` are eligible for routing.
 - If a request names a selected model, `omfm` routes to it directly. Provider-prefixed local model names also resolve to the matching upstream model id.
 - Generic or unknown model names route to the selected model with the lowest locally observed latency.
+- Group model names (`omfm/fast`, `omfm/balanced`, `omfm/capable`, plus `haiku`/`sonnet`/`opus`) route only within the configured group when that group has selected models; empty groups fall back to the full selected list.
 - Models that just hit rate-limit (HTTP 429) or quota (HTTP 402) are skipped for ~10 minutes before becoming candidates again. If every selected model is cooling, routing falls back to the full latency-ordered list so requests still proceed.
 - Successful requests update the local latency cache.
 - With no latency data, routing falls back to the deterministic selected order. The interactive picker and `omfm model --all` save that order from the recommendation-sorted display.

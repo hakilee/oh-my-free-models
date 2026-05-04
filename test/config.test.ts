@@ -40,12 +40,25 @@ describe('config/env', () => {
   it('persists selected models and latency observations', () => {
     const store = new ConfigStore(tempRoot());
     store.updateSelectedModelIds(['a', 'b', 'a']);
+    store.updateModelGroup('fast', ['b', 'b']);
     store.recordSuccess('b', 123, { httpStatus: 200 });
     store.recordFailure('c', { status: 'rate-limited', httpStatus: 429 });
     const again = new ConfigStore(store.paths.root);
     expect(again.readConfig().selectedModelIds).toEqual(['a', 'b']);
+    expect(again.readConfig().modelGroups.fast).toEqual(['b']);
     expect(again.readLatency().b).toMatchObject({ latencyMs: 123, lastStatus: 'ok', lastHttpStatus: 200 });
     expect(again.readLatency().c).toMatchObject({ failures: 1, lastStatus: 'rate-limited', lastHttpStatus: 429 });
+  });
+
+  it('defaults missing model groups for existing configs', () => {
+    const store = new ConfigStore(tempRoot());
+    fs.mkdirSync(store.paths.root, { recursive: true });
+    fs.writeFileSync(store.paths.configPath, '{"port":1234,"selectedModelIds":["a"]}\n');
+    expect(store.readConfig()).toMatchObject({
+      port: 1234,
+      selectedModelIds: ['a'],
+      modelGroups: { fast: [], balanced: [], capable: [] },
+    });
   });
 
   it('sets cooldownUntil on rate-limit/quota failures and skips it for transient errors', () => {

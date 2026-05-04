@@ -15,6 +15,7 @@ Update this page when `src/latency/*` behavior, latency tests, or model-selectio
 - No hosted latency service is used in version `0.0.1`.
 - The model picker writes selected IDs in recommendation display order. That keeps the no-latency routing fallback aligned with the same local evidence users saw when saving selections.
 - Server routing resolves a selected model by local ID or provider upstream ID before latency ordering, which matters for provider-prefixed NVIDIA IDs.
+- User-configured model groups are deliberately explicit instead of inferred from provider metadata. This avoids stale or subjective automatic "capability" classification while still matching coding-agent mode patterns through `fast`/`balanced`/`capable` and `haiku`/`sonnet`/`opus` aliases.
 
 ## Pending research
 

@@ -1,5 +1,5 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
-import { chooseModel, orderedCandidates } from '../src/latency/router.js';
+import { chooseGroupedModel, chooseModel, orderedCandidates } from '../src/latency/router.js';
 
 const NOW = Date.parse('2026-05-03T12:00:00.000Z');
 
@@ -77,5 +77,28 @@ describe('latency router', () => {
       c: { modelId: 'c', latencyMs: 50, updatedAt: '', successes: 1, failures: 1, lastStatus: 'failed' as const },
     };
     expect(orderedCandidates(['a', 'b', 'c'], observations)).toEqual(['b', 'c', 'a']);
+  });
+
+  it('routes group aliases within the configured group only', () => {
+    const observations = {
+      a: { modelId: 'a', latencyMs: 10, updatedAt: '', successes: 1, failures: 0, lastStatus: 'ok' as const },
+      b: { modelId: 'b', latencyMs: 100, updatedAt: '', successes: 1, failures: 0, lastStatus: 'ok' as const },
+      c: { modelId: 'c', latencyMs: 1, updatedAt: '', successes: 1, failures: 0, lastStatus: 'ok' as const },
+    };
+    const groups = { fast: ['b'], balanced: ['a'], capable: ['c'] };
+    expect(chooseGroupedModel(['a', 'b', 'c'], observations, 'omfm/fast', groups)).toEqual({ modelId: 'b', reason: 'model-group' });
+    expect(orderedCandidates(['a', 'b', 'c'], observations, 'haiku', groups)).toEqual(['b']);
+  });
+
+  it('falls back to the full selection when a requested group is empty', () => {
+    const observations = {
+      a: { modelId: 'a', latencyMs: 10, updatedAt: '', successes: 1, failures: 0, lastStatus: 'ok' as const },
+      b: { modelId: 'b', latencyMs: 1, updatedAt: '', successes: 1, failures: 0, lastStatus: 'ok' as const },
+    };
+    expect(orderedCandidates(['a', 'b'], observations, 'opus', { fast: [], balanced: [], capable: [] })).toEqual(['b', 'a']);
+  });
+
+  it('prefers an exact selected model id over a group alias', () => {
+    expect(orderedCandidates(['opus', 'b'], {}, 'opus', { fast: [], balanced: [], capable: ['b'] })).toEqual(['opus', 'b']);
   });
 });
