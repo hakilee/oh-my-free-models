@@ -1,3 +1,7 @@
+<p align="center">
+  <img src="./oh-my-free-models-character.png" height="96" alt="oh-my-free-models character" />
+</p>
+
 # oh-my-free-models
 
 [English](./README.md) | [한국어](./README.ko.md) | [简体中文](./README.zh-CN.md) | [繁體中文](./README.zh-TW.md) | 日本語
