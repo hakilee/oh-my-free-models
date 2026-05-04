@@ -1,8 +1,11 @@
 import { FetchLike, OmfmModel } from '../types.js';
+import { extractContextLengthFromRecord } from './context-length.js';
+import { loadModelMetadataCatalog, modelMetadata, ProviderMetadataCatalog } from './metadata.js';
 
 export const NVIDIA_CHAT_COMPLETIONS_URL = 'https://integrate.api.nvidia.com/v1/chat/completions';
 
-interface NvidiaModel {
+export interface NvidiaModel {
+  [key: string]: unknown;
   id?: string;
   name?: string;
   context_length?: number;
@@ -24,28 +27,30 @@ function titleFromId(id: string): string {
     .replace(/\b\w/g, (c) => c.toUpperCase());
 }
 
-function isChatLikeModel(model: NvidiaModel): boolean {
+export function isChatLikeNvidiaModel(model: NvidiaModel): boolean {
   const haystack = `${model.id ?? ''} ${model.name ?? ''} ${model.type ?? ''} ${model.task ?? ''} ${(model.tags ?? []).join(' ')}`;
   if (!model.id || NON_CHAT_PATTERN.test(haystack)) return false;
   if (model.task && !/chat|generate|completion|instruct/i.test(model.task)) return false;
   return true;
 }
 
-export function normalizeNvidiaModel(model: NvidiaModel): OmfmModel {
+export function normalizeNvidiaModel(model: NvidiaModel, metadataCatalog?: ProviderMetadataCatalog): OmfmModel {
   const upstreamId = model.id ?? 'unknown';
+  const metadata = modelMetadata('nvidia', upstreamId, metadataCatalog);
   return {
     id: `nvidia/${upstreamId}`,
     upstreamId,
-    name: model.name ?? titleFromId(upstreamId),
+    name: model.name ?? metadata?.name ?? titleFromId(upstreamId),
     provider: 'nvidia',
     source: 'nvidia',
-    contextLength: model.context_length ?? model.max_context_length,
+    contextLength: extractContextLengthFromRecord(model as Record<string, unknown>) ?? metadata?.contextLength,
     raw: model,
   };
 }
 
 export async function listNvidiaFreeModels(options: { apiKey: string; fetchImpl?: FetchLike }): Promise<OmfmModel[]> {
   const fetchImpl = options.fetchImpl ?? fetch;
+  const metadataCatalogPromise = loadModelMetadataCatalog({ fetchImpl: options.fetchImpl });
   const response = await fetchImpl('https://integrate.api.nvidia.com/v1/models', {
     headers: {
       Authorization: `Bearer ${options.apiKey}`,
@@ -57,10 +62,12 @@ export async function listNvidiaFreeModels(options: { apiKey: string; fetchImpl?
   }
   const body = (await response.json()) as { data?: NvidiaModel[] } | NvidiaModel[];
   const data = Array.isArray(body) ? body : body.data ?? [];
-  return data
-    .filter(isChatLikeModel)
-    .map(normalizeNvidiaModel)
+  const metadataCatalog = await metadataCatalogPromise;
+  const models = data
+    .filter(isChatLikeNvidiaModel)
+    .map((model) => normalizeNvidiaModel(model, metadataCatalog))
     .sort((a, b) => a.name.localeCompare(b.name) || a.id.localeCompare(b.id));
+  return models;
 }
 
 export async function postNvidiaChatCompletion(options: {

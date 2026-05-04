@@ -8,6 +8,7 @@
   },
   "files": [
     "dist",
+    "data/model-metadata.json",
     "README.md",
     "README.ko.md",
     "README.zh-CN.md",
@@ -22,6 +23,7 @@
   ],
   "scripts": {
     "docs:check": "node scripts/check-docs.mjs",
+    "metadata:update": "node scripts/update-model-metadata.mjs",
     "build": "tsc -p tsconfig.json",
     "typecheck": "tsc --noEmit -p tsconfig.json",
     "test": "vitest run",

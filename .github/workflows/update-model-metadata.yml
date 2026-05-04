@@ -1,0 +1,67 @@
+name: Update model metadata
+
+on:
+  schedule:
+    - cron: '17 3 * * *'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  update:
+    runs-on: ubuntu-latest
+    env:
+      METADATA_BRANCH: model-metadata
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Refresh provider model metadata
+        run: npm run metadata:update
+
+      - name: Verify metadata update
+        run: |
+          npm run typecheck
+          npm test -- test/openrouter.test.ts test/nvidia.test.ts
+
+      - name: Publish metadata branch
+        run: |
+          git fetch origin "$METADATA_BRANCH":"refs/remotes/origin/$METADATA_BRANCH" || true
+          if git show "origin/$METADATA_BRANCH:data/model-metadata.json" > /tmp/current-model-metadata.json 2>/dev/null &&
+            cmp -s /tmp/current-model-metadata.json data/model-metadata.json; then
+            echo "No metadata changes."
+            exit 0
+          fi
+
+          cp data/model-metadata.json /tmp/next-model-metadata.json
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+
+          git checkout --orphan "$METADATA_BRANCH"
+          git rm -rf . >/dev/null 2>&1 || true
+          mkdir -p data
+          cp /tmp/next-model-metadata.json data/model-metadata.json
+          git add data/model-metadata.json
+          git commit -m "$(cat <<'EOF'
+          Refresh provider metadata branch for runtime context
+
+          Constraint: GitHub Actions cannot rely on provider API-key secrets, so the raw runtime catalog is refreshed from public OpenRouter and NVIDIA metadata endpoints.
+          Rejected: Auto-merging daily metadata commits into main | It creates noisy history for data-only churn.
+          Confidence: medium
+          Scope-risk: narrow
+          Directive: Keep this branch data-only; main should consume it through raw GitHub JSON with packaged metadata as fallback.
+          Tested: npm run typecheck; npm test -- test/openrouter.test.ts test/nvidia.test.ts
+          Not-tested: Private provider API-key smoke beyond public metadata surfaces.
+          EOF
+          )"
+          git push --force origin HEAD:"$METADATA_BRANCH"

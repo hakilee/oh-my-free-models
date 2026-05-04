@@ -1,6 +1,7 @@
 import { FetchLike, OmfmModel } from '../types.js';
+import { loadModelMetadataCatalog, modelMetadata, ProviderMetadataCatalog } from './metadata.js';
 
-interface OpenRouterModel {
+export interface OpenRouterModel {
   id?: string;
   name?: string;
   canonical_slug?: string;
@@ -38,15 +39,16 @@ export function isFreeOpenRouterModel(model: OpenRouterModel): boolean {
   return priceIsZero(pricing.prompt) && priceIsZero(pricing.completion) && priceIsZero(pricing.request ?? 0);
 }
 
-export function normalizeOpenRouterModel(model: OpenRouterModel, popularityRank?: number): OmfmModel {
+export function normalizeOpenRouterModel(model: OpenRouterModel, popularityRank?: number, metadataCatalog?: ProviderMetadataCatalog): OmfmModel {
   const id = model.id ?? model.canonical_slug ?? 'unknown';
+  const metadata = modelMetadata('openrouter', id, metadataCatalog);
   return {
     id,
     upstreamId: id,
     name: model.name ?? id,
     provider: inferProvider(id),
     source: 'openrouter',
-    contextLength: model.context_length,
+    contextLength: model.context_length ?? metadata?.contextLength,
     popularityRank,
     supportedParameters: model.supported_parameters ?? [],
     raw: model,
@@ -71,15 +73,17 @@ async function fetchOpenRouterModels(options: { apiKey: string; fetchImpl: Fetch
 
 export async function listOpenRouterFreeModels(options: { apiKey: string; fetchImpl?: FetchLike }): Promise<OmfmModel[]> {
   const fetchImpl = options.fetchImpl ?? fetch;
+  const metadataCatalogPromise = loadModelMetadataCatalog({ fetchImpl: options.fetchImpl });
   const allModels = await fetchOpenRouterModels({ apiKey: options.apiKey, fetchImpl });
   const programmingPopularity = await fetchOpenRouterModels({ apiKey: options.apiKey, fetchImpl, category: 'programming' }).catch(() => []);
+  const metadataCatalog = await metadataCatalogPromise;
   const popularityById = new Map<string, number>();
   for (const [index, model] of programmingPopularity.entries()) {
     if (model.id) popularityById.set(model.id, index);
   }
   return allModels
     .filter(isFreeOpenRouterModel)
-    .map((model, index) => normalizeOpenRouterModel(model, popularityById.get(model.id ?? '') ?? programmingPopularity.length + index))
+    .map((model, index) => normalizeOpenRouterModel(model, popularityById.get(model.id ?? '') ?? programmingPopularity.length + index, metadataCatalog))
     .sort((a, b) => (a.popularityRank ?? Number.MAX_SAFE_INTEGER) - (b.popularityRank ?? Number.MAX_SAFE_INTEGER) || a.name.localeCompare(b.name) || a.id.localeCompare(b.id));
 }
 

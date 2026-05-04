@@ -8,7 +8,9 @@ Use this route for provider support, model-list changes, free-model filtering, a
 - `listAvailableFreeModels` in `src/providers/catalog.ts` is the multi-provider entry point used by `src/commands/model.ts` and `src/server/create-server.ts`; new providers must register here.
 - OpenRouter model eligibility accepts `:free` IDs or zero prompt/completion/request pricing with text output support.
 - NVIDIA model eligibility filters the upstream `/v1/models` list to chat-like entries: IDs, names, types, tasks, and tags must not match the non-chat pattern (embed/rerank/ocr/audio/speech/video/translation/safety/etc.), and any explicit `task` must read as chat/generate/completion/instruct.
-- NVIDIA models are exposed with local `nvidia/` IDs while preserving upstream model IDs for API calls.
+- Provider context length is enriched from the raw metadata catalog on the `model-metadata` branch, with the checked-in [data/model-metadata.json](../data/model-metadata.json) file as an offline/package fallback. The catalog is refreshed from public OpenRouter and NVIDIA metadata endpoints by `npm run metadata:update` and the daily `.github/workflows/update-model-metadata.yml` workflow.
+- The NVIDIA metadata refresh uses the public NGC endpoint catalog behind Build NVIDIA, per-endpoint details, and Build NVIDIA model cards as a final context-length fallback; rows without a reliable context length stay in the catalog and render as `-`.
+- NVIDIA models are exposed with local `nvidia/` IDs while preserving upstream model IDs for API calls. Runtime context length is read only from upstream model metadata aliases, the raw metadata catalog, or the packaged fallback; it does not fetch Build NVIDIA pages during `omfm model`.
 - Provider model catalogs are cached for 5 minutes; stale catalogs are refreshed before normal use, with stale-cache fallback only when provider catalog fetches fail.
 - Provider request helpers forward chat completions and Anthropic-compatible messages where supported.
 
@@ -18,6 +20,7 @@ Use this route for provider support, model-list changes, free-model filtering, a
 2. Read `research/providers.md` for provider findings, candidate constraints, and decision records.
 3. Inspect source anchors:
    - `src/providers` for adapters and model normalization.
+   - [data/model-metadata.json](../data/model-metadata.json) and [scripts/update-model-metadata.mjs](../scripts/update-model-metadata.mjs) for provider metadata enrichment.
    - [src/server/create-server.ts](../src/server/create-server.ts) for selected-model filtering and request forwarding.
    - [src/commands/model.ts](../src/commands/model.ts) for catalog selection behavior.
 4. Inspect tests:
