@@ -4,7 +4,7 @@ Use this route for provider support, model-list changes, free-model filtering, a
 
 ## Current provider model
 
-- Implementation anchors: [src/providers/openrouter.ts](../src/providers/openrouter.ts), [src/providers/nvidia.ts](../src/providers/nvidia.ts), [src/providers/catalog.ts](../src/providers/catalog.ts), and [src/providers/types.ts](../src/providers/types.ts).
+- Implementation anchors: [src/providers/openrouter.ts](../src/providers/openrouter.ts), [src/providers/nvidia.ts](../src/providers/nvidia.ts), and [src/providers/catalog.ts](../src/providers/catalog.ts).
 - `listAvailableFreeModels` in `src/providers/catalog.ts` is the multi-provider entry point used by `src/commands/model.ts` and `src/server/create-server.ts`; new providers must register here.
 - OpenRouter model eligibility accepts `:free` IDs or zero prompt/completion/request pricing with text output support.
 - NVIDIA model eligibility filters the upstream `/v1/models` list to chat-like entries: IDs, names, types, tasks, and tags must not match the non-chat pattern (embed/rerank/ocr/audio/speech/video/translation/safety/etc.), and any explicit `task` must read as chat/generate/completion/instruct.

@@ -66,9 +66,8 @@ async function selectedModels(store: ConfigStore, apiKeys: ProviderApiKeys, fetc
 
 async function selectedFreeModels(store: ConfigStore, apiKeys: ProviderApiKeys, fetchImpl?: FetchLike): Promise<OmfmModel[]> {
   const config = store.readConfig();
-  const selectedFree = await selectedModels(store, apiKeys, fetchImpl);
-  const freeIds = new Set(selectedFree.map((model) => model.id));
-  return config.selectedModelIds.map((id) => selectedFree.find((model) => model.id === id)).filter((model): model is OmfmModel => Boolean(model && freeIds.has(model.id)));
+  const byId = new Map((await selectedModels(store, apiKeys, fetchImpl)).map((model) => [model.id, model]));
+  return config.selectedModelIds.map((id) => byId.get(id)).filter((model): model is OmfmModel => Boolean(model));
 }
 
 function assertSelectedFree(models: OmfmModel[]): void {
@@ -146,7 +145,6 @@ export function createOmfmServer(options: ServerOptions = {}): http.Server {
         const byId = new Map(selected.map((model) => [model.id, model]));
         const candidateIds = orderedSelectedModelIds(selected, store.readLatency(), body.model);
         let lastError: unknown;
-        let attempted = false;
         let attempts = 0;
         for (const modelId of candidateIds) {
           if (attempts >= maxRetries) break;
@@ -157,7 +155,6 @@ export function createOmfmServer(options: ServerOptions = {}): http.Server {
             lastError = missingKeyMessage(model);
             continue;
           }
-          attempted = true;
           attempts += 1;
           const started = Date.now();
           const upstreamBody = withUpstreamModel(body, model);
@@ -177,7 +174,7 @@ export function createOmfmServer(options: ServerOptions = {}): http.Server {
           }
           lastError = await recordUpstreamFailure(store, modelId, upstream);
         }
-        if (!attempted) {
+        if (attempts === 0) {
           noUsableModelResponse(res, lastError);
           return;
         }
@@ -193,7 +190,6 @@ export function createOmfmServer(options: ServerOptions = {}): http.Server {
         const byId = new Map(selected.map((model) => [model.id, model]));
         const candidateIds = orderedSelectedModelIds(selected, store.readLatency(), body.model);
         let lastError: unknown;
-        let attempted = false;
         let attempts = 0;
         for (const modelId of candidateIds) {
           if (attempts >= maxRetries) break;
@@ -204,7 +200,6 @@ export function createOmfmServer(options: ServerOptions = {}): http.Server {
             lastError = missingKeyMessage(model);
             continue;
           }
-          attempted = true;
           attempts += 1;
           const started = Date.now();
           if (sourceOf(model) === 'nvidia') {
@@ -243,7 +238,7 @@ export function createOmfmServer(options: ServerOptions = {}): http.Server {
           }
           lastError = await recordUpstreamFailure(store, modelId, upstream);
         }
-        if (!attempted) {
+        if (attempts === 0) {
           noUsableModelResponse(res, lastError);
           return;
         }

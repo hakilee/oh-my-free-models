@@ -28,7 +28,6 @@ export interface RunModelCommandOptions {
   stderr?: OutputLike;
   stdin?: InputLike;
   runTui?: typeof runModelTui;
-  tui?: typeof runModelTui;
   runScheduler?: typeof runProbeScheduler;
 }
 
@@ -101,7 +100,6 @@ export async function runModelCommand(options: RunModelCommandOptions = {}): Pro
   const stderr = options.stderr ?? process.stderr;
   store.ensureRoot();
   const apiKeys = requireAnyProviderApiKey(options.env ?? process.env, store.paths.root);
-  const apiKey = apiKeys.openrouter ?? '';
   const models = await loadModels({ apiKeys, fetchImpl: options.fetchImpl, store, json: options.json, stderr });
 
   const config = store.readConfig();
@@ -126,12 +124,11 @@ export async function runModelCommand(options: RunModelCommandOptions = {}): Pro
     }
     store.updateSelectedModelIds(options.select);
   } else if (!options.json && stdout.isTTY) {
-    const runTui = options.runTui ?? options.tui ?? runModelTui;
+    const runTui = options.runTui ?? runModelTui;
     const result = await runTui({
       models,
       selectedModelIds: [...current],
       store,
-      apiKey,
       apiKeys,
       stdin: options.stdin,
       stdout: stdout as Writable,

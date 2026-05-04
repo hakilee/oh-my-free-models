@@ -40,7 +40,7 @@ describe('model TUI', () => {
       models: sampleModels,
       selectedModelIds: ['alpha/one:free'],
       store,
-      apiKey: 'k',
+      apiKeys: { openrouter: 'k' },
       stdin: input as any,
       stdout: output as any,
       runScheduler: async () => new Promise(() => undefined),
@@ -74,7 +74,7 @@ describe('model TUI', () => {
       models: sampleModels,
       selectedModelIds: ['alpha/one:free'],
       store,
-      apiKey: 'k',
+      apiKeys: { openrouter: 'k' },
       stdin: input as any,
       stdout: output as any,
       runScheduler: async ({ signal }) => {
@@ -126,7 +126,7 @@ describe('model TUI', () => {
       models: sampleModels,
       selectedModelIds: [],
       store,
-      apiKey: 'k',
+      apiKeys: { openrouter: 'k' },
       stdin: input as any,
       stdout: output as any,
       fetchImpl: (async () => new Promise(() => undefined)) as any,
@@ -150,7 +150,7 @@ describe('model TUI', () => {
       models: sampleModels,
       selectedModelIds: [],
       store,
-      apiKey: 'k',
+      apiKeys: { openrouter: 'k' },
       stdin: input as any,
       stdout: output as any,
       runScheduler: async ({ onUpdate }) => {
@@ -192,7 +192,7 @@ describe('model TUI', () => {
       models: manyModels,
       selectedModelIds: [],
       store,
-      apiKey: 'k',
+      apiKeys: { openrouter: 'k' },
       stdin: input as any,
       stdout: output as any,
       runScheduler: async () => new Promise(() => undefined),
@@ -233,7 +233,7 @@ describe('model TUI', () => {
       models: manyModels,
       selectedModelIds: [],
       store,
-      apiKey: 'k',
+      apiKeys: { openrouter: 'k' },
       stdin: input as any,
       stdout: output as any,
       runScheduler: async () => new Promise(() => undefined),
@@ -274,7 +274,7 @@ describe('model TUI', () => {
       models: manyModels,
       selectedModelIds: [],
       store,
-      apiKey: 'k',
+      apiKeys: { openrouter: 'k' },
       stdin: input as any,
       stdout: output as any,
       runScheduler: async () => new Promise(() => undefined),
@@ -292,13 +292,13 @@ describe('model TUI', () => {
   it('cancels without saving on q and exits interrupted on Ctrl+C', async () => {
     const store = tempStore();
     const input = new FakeInput();
-    const cancelPromise = runModelTui({ models: sampleModels, selectedModelIds: ['alpha/one:free'], store, apiKey: 'k', stdin: input as any, stdout: new FakeOutput() as any, runScheduler: async () => new Promise(() => undefined) });
+    const cancelPromise = runModelTui({ models: sampleModels, selectedModelIds: ['alpha/one:free'], store, apiKeys: { openrouter: 'k' }, stdin: input as any, stdout: new FakeOutput() as any, runScheduler: async () => new Promise(() => undefined) });
     input.send(' ');
     input.send('q');
     await expect(cancelPromise).resolves.toMatchObject({ saved: false, selectedModelIds: ['alpha/one:free'], interrupted: false });
 
     const input2 = new FakeInput();
-    const interruptPromise = runModelTui({ models: sampleModels, selectedModelIds: [], store, apiKey: 'k', stdin: input2 as any, stdout: new FakeOutput() as any, runScheduler: async () => new Promise(() => undefined) });
+    const interruptPromise = runModelTui({ models: sampleModels, selectedModelIds: [], store, apiKeys: { openrouter: 'k' }, stdin: input2 as any, stdout: new FakeOutput() as any, runScheduler: async () => new Promise(() => undefined) });
     input2.send('\u0003');
     await expect(interruptPromise).resolves.toMatchObject({ saved: false, interrupted: true });
   });

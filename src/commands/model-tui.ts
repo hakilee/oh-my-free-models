@@ -25,8 +25,7 @@ export interface ModelTuiOptions {
   models: OmfmModel[];
   selectedModelIds: string[];
   store: ConfigStore;
-  apiKey: string;
-  apiKeys?: ProviderApiKeys;
+  apiKeys: ProviderApiKeys;
   stdin?: NodeJS.ReadStream | Readable;
   stdout?: NodeJS.WriteStream | Writable;
   fetchImpl?: FetchLike;
@@ -268,7 +267,7 @@ export async function runModelTui(options: ModelTuiOptions): Promise<ModelTuiRes
         probe: (model, probeSignal) => {
           onRow({ modelId: model.id, status: 'probing' });
           const source = model.source ?? 'openrouter';
-          const apiKey = options.apiKeys?.[source] ?? (source === 'openrouter' ? options.apiKey : undefined);
+          const apiKey = options.apiKeys[source];
           if (!apiKey) return Promise.resolve({ modelId: model.id, status: 'failed', error: `${source} API key is not configured` });
           return probeProviderModel({ apiKey, model, fetchImpl: options.fetchImpl, signal: probeSignal });
         },

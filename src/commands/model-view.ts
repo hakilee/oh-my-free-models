@@ -73,7 +73,10 @@ export function latencyFor(modelId: string, latency: Record<string, LatencyObser
 
 function observedStatus(observation: LatencyObservation | undefined, fallback: ModelProbeStatus): ModelProbeStatus {
   if (!observation?.lastStatus) return fallback;
-  if (observation.lastStatus === 'ok') return latencyFor(observation.modelId, { [observation.modelId]: observation }) === undefined ? fallback : 'cached';
+  if (observation.lastStatus === 'ok') {
+    const value = observation.latencyMs;
+    return typeof value === 'number' && Number.isFinite(value) ? 'cached' : fallback;
+  }
   if (
     observation.lastStatus === 'rate-limited' ||
     observation.lastStatus === 'payment' ||
