@@ -9,6 +9,9 @@
   "files": [
     "dist",
     "README.md",
+    "README.ko.md",
+    "INSTALLATION.md",
+    "INSTALLATION.ko.md",
     "LICENSE"
   ],
   "scripts": {
