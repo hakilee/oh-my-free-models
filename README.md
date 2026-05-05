@@ -4,7 +4,7 @@
 
 # oh-my-free-models
 
-English | [한국어](./README.ko.md) | [简体中文](./README.zh-CN.md) | [繁體中文](./README.zh-TW.md) | [日本語](./README.ja.md)
+English | [한국어](./docs/README.ko.md) | [简体中文](./docs/README.zh-CN.md) | [繁體中文](./docs/README.zh-TW.md) | [日本語](./docs/README.ja.md)
 
 `oh-my-free-models` (`omfm`) is a local proxy that routes your coding agent to the fastest free model across providers. Point your OpenAI- or Anthropic-compatible agent at `localhost`, pick a few free models, and `omfm` keeps requests flowing as latency, rate limits, and quotas shift underneath.
 
@@ -72,6 +72,6 @@ When selecting models, keep each model group in the same context tier. For examp
 
 ## More
 
-- Setup, all CLI flags, daemon control, diagnostics: [INSTALLATION.md](./INSTALLATION.md)
+- Setup, all CLI flags, daemon control, diagnostics: [INSTALLATION.md](./docs/INSTALLATION.md)
 - Routing internals: [docs/latency-routing.md](./docs/latency-routing.md)
 - Provider catalog: [docs/provider-guide.md](./docs/provider-guide.md)

@@ -14,10 +14,10 @@ This directory is the maintained route map for `oh-my-free-models`. Start here w
 
 ## Maintenance rules
 
-- `README.md` is the why-focused entry doc; setup and CLI reference live in `INSTALLATION.md`. Both ship in five languages (`*.md`, `*.ko.md`, `*.zh-CN.md`, `*.zh-TW.md`, `*.ja.md`); see `AGENTS.md` § "Multilingual user-facing docs" for update rules.
-- `docs/` stays compact and route-oriented.
+- `README.md` is the root why-focused entry doc; setup and CLI reference live in [INSTALLATION.md](INSTALLATION.md). Localized READMEs and installation guides also live under `docs/`; see `AGENTS.md` § "Multilingual user-facing docs" for update rules.
+- Project-maintenance pages in `docs/` stay compact and route-oriented.
 - `research/` stores reusable findings and decision records that are too detailed for route pages.
-- Keep all maintained documentation under `docs/` and `research/` in English. Top-level user-facing docs ship five languages.
+- Keep route/research documentation under `docs/` and `research/` in English. User-facing docs ship five languages.
 
 ## Validation
 

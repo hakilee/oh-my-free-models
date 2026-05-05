@@ -2,7 +2,7 @@
 
 English | [한국어](./INSTALLATION.ko.md) | [简体中文](./INSTALLATION.zh-CN.md) | [繁體中文](./INSTALLATION.zh-TW.md) | [日本語](./INSTALLATION.ja.md)
 
-This document covers installing `oh-my-free-models` (`omfm`), configuring provider keys, selecting models, running the local proxy, and connecting clients. For the project's purpose and motivation, see [README.md](./README.md).
+This document covers installing `oh-my-free-models` (`omfm`), configuring provider keys, selecting models, running the local proxy, and connecting clients. For the project's purpose and motivation, see [README.md](../README.md).
 
 ## 1. Install
 

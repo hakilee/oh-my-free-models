@@ -9,16 +9,8 @@
   "files": [
     "dist",
     "data/model-metadata.json",
+    "docs",
     "README.md",
-    "README.ko.md",
-    "README.zh-CN.md",
-    "README.zh-TW.md",
-    "README.ja.md",
-    "INSTALLATION.md",
-    "INSTALLATION.ko.md",
-    "INSTALLATION.zh-CN.md",
-    "INSTALLATION.zh-TW.md",
-    "INSTALLATION.ja.md",
     "LICENSE"
   ],
   "scripts": {

@@ -7,6 +7,15 @@ const root = process.cwd();
 const requiredFiles = [
   'AGENTS.md',
   'README.md',
+  'docs/README.ko.md',
+  'docs/README.zh-CN.md',
+  'docs/README.zh-TW.md',
+  'docs/README.ja.md',
+  'docs/INSTALLATION.md',
+  'docs/INSTALLATION.ko.md',
+  'docs/INSTALLATION.zh-CN.md',
+  'docs/INSTALLATION.zh-TW.md',
+  'docs/INSTALLATION.ja.md',
   'docs/index.md',
   'docs/architecture.md',
   'docs/product.md',
@@ -21,6 +30,15 @@ const requiredFiles = [
 ];
 
 const removedDocs = [
+  'README.ko.md',
+  'README.zh-CN.md',
+  'README.zh-TW.md',
+  'README.ja.md',
+  'INSTALLATION.md',
+  'INSTALLATION.ko.md',
+  'INSTALLATION.zh-CN.md',
+  'INSTALLATION.zh-TW.md',
+  'INSTALLATION.ja.md',
   'docs/agent-orientation.md',
   'docs/quality-score.md',
   'docs/tech-debt.md',
@@ -28,7 +46,8 @@ const removedDocs = [
 ];
 
 const expectedRoutes = new Map([
-  ['AGENTS.md', ['docs/index.md', 'README.md']],
+  ['AGENTS.md', ['docs/index.md', 'README.md', 'docs/INSTALLATION.md']],
+  ['README.md', ['docs/README.ko.md', 'docs/README.zh-CN.md', 'docs/README.zh-TW.md', 'docs/README.ja.md', 'docs/INSTALLATION.md']],
   ['docs/index.md', ['provider-guide.md', 'latency-routing.md', 'client-compatibility.md', 'product.md', 'architecture.md']],
   ['docs/provider-guide.md', ['research/providers.md', 'src/providers', 'test/openrouter.test.ts', 'test/nvidia.test.ts']],
   ['docs/latency-routing.md', ['research/latency-routing.md', 'src/latency', 'test/router.test.ts', 'test/probe.test.ts', 'test/probe-scheduler.test.ts']],
@@ -36,7 +55,8 @@ const expectedRoutes = new Map([
   ['research/index.md', ['providers.md', 'latency-routing.md', 'client-compatibility.md', 'decisions/README.md']],
 ]);
 
-const freshnessFiles = requiredFiles.filter((file) => file.startsWith('docs/') || file.startsWith('research/'));
+const userFacingDocs = new Set(requiredFiles.filter((file) => /^docs\/(README|INSTALLATION)(\.|$)/.test(file)));
+const freshnessFiles = requiredFiles.filter((file) => (file.startsWith('docs/') || file.startsWith('research/')) && !userFacingDocs.has(file));
 const freshnessTerms = /update|fresh|maintain|review|refresh|when changing/i;
 const compactLineLimit = 180;
 const failures = [];

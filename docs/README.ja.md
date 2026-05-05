@@ -1,10 +1,10 @@
 <p align="center">
-  <img src="./oh-my-free-models-character.png" height="96" alt="oh-my-free-models character" />
+  <img src="../oh-my-free-models-character.png" height="96" alt="oh-my-free-models character" />
 </p>
 
 # oh-my-free-models
 
-[English](./README.md) | [한국어](./README.ko.md) | [简体中文](./README.zh-CN.md) | [繁體中文](./README.zh-TW.md) | 日本語
+[English](../README.md) | [한국어](./README.ko.md) | [简体中文](./README.zh-CN.md) | [繁體中文](./README.zh-TW.md) | 日本語
 
 `oh-my-free-models`（`omfm`）は、コーディング agent を複数の provider の中で今一番速い free モデルへルーティングするローカルプロキシです。OpenAI または Anthropic 互換の agent の baseURL を `localhost` に向け、free モデルをいくつか選んでおくだけで、latency・rate-limit・quota が揺れ動いても `omfm` がリクエストを流し続けます。
 
@@ -73,5 +73,5 @@ alias freeclaude='ANTHROPIC_BASE_URL=http://localhost:4567/anthropic ANTHROPIC_A
 ## もっと知る
 
 - セットアップ、全 CLI フラグ、daemon 制御、診断: [INSTALLATION.ja.md](./INSTALLATION.ja.md)
-- ルーティングの内部動作: [docs/latency-routing.md](./docs/latency-routing.md)
-- Provider カタログ: [docs/provider-guide.md](./docs/provider-guide.md)
+- ルーティングの内部動作: [docs/latency-routing.md](./latency-routing.md)
+- Provider カタログ: [docs/provider-guide.md](./provider-guide.md)

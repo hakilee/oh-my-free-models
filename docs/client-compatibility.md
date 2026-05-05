@@ -1,6 +1,6 @@
 # Client Compatibility
 
-Use this route for OpenAI-compatible client behavior, Anthropic-compatible client behavior, response translation, and streaming compatibility. Product setup snippets remain in [README.md](../README.md).
+Use this route for OpenAI-compatible client behavior, Anthropic-compatible client behavior, response translation, and streaming compatibility. Product overview snippets remain in [README.md](../README.md), and full setup lives in [INSTALLATION.md](INSTALLATION.md).
 
 ## Supported local surfaces
 

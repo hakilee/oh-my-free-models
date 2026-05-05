@@ -1,10 +1,10 @@
 <p align="center">
-  <img src="./oh-my-free-models-character.png" height="96" alt="oh-my-free-models character" />
+  <img src="../oh-my-free-models-character.png" height="96" alt="oh-my-free-models character" />
 </p>
 
 # oh-my-free-models
 
-[English](./README.md) | [한국어](./README.ko.md) | 简体中文 | [繁體中文](./README.zh-TW.md) | [日本語](./README.ja.md)
+[English](../README.md) | [한국어](./README.ko.md) | 简体中文 | [繁體中文](./README.zh-TW.md) | [日本語](./README.ja.md)
 
 `oh-my-free-models`（`omfm`）是一个本地代理，能把你的编程 Agent 路由到多个 provider 中当前最快的免费模型。把 OpenAI 或 Anthropic 兼容 Agent 的 baseURL 指向 `localhost`，选好几个免费模型，`omfm` 就会在 latency、rate-limit、quota 不断变化的情况下持续把请求送出去。
 
@@ -73,5 +73,5 @@ alias freeclaude='ANTHROPIC_BASE_URL=http://localhost:4567/anthropic ANTHROPIC_A
 ## 更多
 
 - 安装、全部 CLI 参数、daemon 控制、诊断：[INSTALLATION.zh-CN.md](./INSTALLATION.zh-CN.md)
-- 路由内部机制：[docs/latency-routing.md](./docs/latency-routing.md)
-- Provider 目录：[docs/provider-guide.md](./docs/provider-guide.md)
+- 路由内部机制：[docs/latency-routing.md](./latency-routing.md)
+- Provider 目录：[docs/provider-guide.md](./provider-guide.md)

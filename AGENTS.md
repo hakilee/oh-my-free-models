@@ -5,7 +5,7 @@ This repository is a TypeScript/Node local proxy that exposes free models from s
 ## Start Here
 
 1. Read [`docs/index.md`](docs/index.md) to pick the right lane.
-2. Use [`README.md`](README.md) for user-facing install, configuration, proxy, and development commands.
+2. Use [`README.md`](README.md) for the user-facing overview and [`docs/INSTALLATION.md`](docs/INSTALLATION.md) for install, configuration, proxy, and development commands.
 
 ## Common Task Routes
 
@@ -41,13 +41,13 @@ When you change provider, latency, or client compatibility behavior, update the 
 
 ## Multilingual user-facing docs
 
-`README.md` and `INSTALLATION.md` ship in five languages at the repository root:
+`README.md` stays at the repository root. Localized READMEs and all installation guides live under `docs/`:
 
-- English: `README.md`, `INSTALLATION.md`
-- 한국어: `README.ko.md`, `INSTALLATION.ko.md`
-- 简体中文: `README.zh-CN.md`, `INSTALLATION.zh-CN.md`
-- 繁體中文: `README.zh-TW.md`, `INSTALLATION.zh-TW.md`
-- 日本語: `README.ja.md`, `INSTALLATION.ja.md`
+- English: `README.md`, `docs/INSTALLATION.md`
+- 한국어: `docs/README.ko.md`, `docs/INSTALLATION.ko.md`
+- 简体中文: `docs/README.zh-CN.md`, `docs/INSTALLATION.zh-CN.md`
+- 繁體中文: `docs/README.zh-TW.md`, `docs/INSTALLATION.zh-TW.md`
+- 日本語: `docs/README.ja.md`, `docs/INSTALLATION.ja.md`
 
 When any of these changes:
 

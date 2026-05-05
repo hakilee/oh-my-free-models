@@ -1,6 +1,6 @@
 # Product
 
-`oh-my-free-models` (`omfm`) is a local free-model proxy for coding agents. It gives OpenAI-compatible and Anthropic-compatible tools a localhost endpoint while selecting among user-approved free models by local latency observations. User-facing setup remains in [README.md](../README.md).
+`oh-my-free-models` (`omfm`) is a local free-model proxy for coding agents. It gives OpenAI-compatible and Anthropic-compatible tools a localhost endpoint while selecting among user-approved free models by local latency observations. User-facing overview remains in [README.md](../README.md), and full setup lives in [INSTALLATION.md](INSTALLATION.md).
 
 ## What it provides
 
