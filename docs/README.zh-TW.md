@@ -8,6 +8,12 @@
 
 `oh-my-free-models`（`omfm`）是一個本機代理，把你的 coding agent 導向多個 provider 中當下最快的免費模型。把 OpenAI 或 Anthropic 相容客戶端的 baseURL 指到 `localhost`，挑幾個免費模型，`omfm` 就會在 latency、rate-limit、quota 持續波動的情況下讓請求順暢地流過去。
 
+<p align="center">
+  <video src="../oh-my-free-models-opencode.mp4" controls muted playsinline width="720"></video>
+</p>
+
+> `omfm` 驅動 OpenCode 在路由後的免費模型上運作的示範。如果播放器無法載入，請[下載影片](../oh-my-free-models-opencode.mp4)。
+
 ## 為什麼需要它
 
 免費方案的 coding agent 看規格很吸引人，真正跑起來卻常在四個地方卡住：
