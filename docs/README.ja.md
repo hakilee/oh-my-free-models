@@ -68,7 +68,7 @@ OpenAI 互換クライアント（OpenCode、Hermes Agent、OpenClaw など）:
 
 ```text
 url=http://localhost:4567/v1
-model=omfm/fast        # または omfm/balanced, omfm/capable
+model=omfm             # プール全体; または omfm/fast, omfm/balanced, omfm/capable
 ```
 
 Anthropic 互換クライアント（Claude Code など）:
@@ -85,7 +85,7 @@ Claude Code のモデルエイリアスを `omfm` のモデルグループに割
 alias freeclaude='ANTHROPIC_BASE_URL=http://localhost:4567/anthropic ANTHROPIC_AUTH_TOKEN=omfm-local ANTHROPIC_API_KEY= CLAUDE_CODE_DISABLE_NONESSENTIAL_TRAFFIC=1 ANTHROPIC_DEFAULT_OPUS_MODEL=omfm/capable ANTHROPIC_DEFAULT_SONNET_MODEL=omfm/balanced ANTHROPIC_DEFAULT_HAIKU_MODEL=omfm/fast claude'
 ```
 
-`omfm` では、`omfm/capable`、`omfm/balanced`、`omfm/fast` がそれぞれ `capable`、`balanced`、`fast` のモデルグループにルーティングされます。Claude 形式のエイリアスである `opus`、`sonnet`、`haiku` も同じグループにマッピングされます。
+プレフィックスなしの `omfm` は選択されたプール全体にルーティングされ、`omfm/capable`、`omfm/balanced`、`omfm/fast` はそれぞれ対応するモデルグループにフィルターします。Claude 形式のエイリアスである `opus`、`sonnet`、`haiku` も同じグループにマッピングされます。`omfm model` で選んだ具体的なモデル ID をそのまま渡すと、そのモデルに固定されます。
 
 Anthropic surface はローカルの `count_tokens` 推定にも対応します。リクエストが OpenAI 互換 provider route に fallback する場合は、一般的な tool-use/tool-result の流れも変換します。
 

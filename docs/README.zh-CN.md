@@ -68,7 +68,7 @@ OpenAI 兼容客户端（OpenCode、Hermes Agent、OpenClaw 等）：
 
 ```text
 url=http://localhost:4567/v1
-model=omfm/fast        # 或 omfm/balanced, omfm/capable
+model=omfm             # 整个池；或 omfm/fast, omfm/balanced, omfm/capable
 ```
 
 Anthropic 兼容客户端（Claude Code 等）：
@@ -85,7 +85,7 @@ Claude Code 的模型别名也可以指向 `omfm` 的模型组：
 alias freeclaude='ANTHROPIC_BASE_URL=http://localhost:4567/anthropic ANTHROPIC_AUTH_TOKEN=omfm-local ANTHROPIC_API_KEY= CLAUDE_CODE_DISABLE_NONESSENTIAL_TRAFFIC=1 ANTHROPIC_DEFAULT_OPUS_MODEL=omfm/capable ANTHROPIC_DEFAULT_SONNET_MODEL=omfm/balanced ANTHROPIC_DEFAULT_HAIKU_MODEL=omfm/fast claude'
 ```
 
-在 `omfm` 中，`omfm/capable`、`omfm/balanced` 和 `omfm/fast` 会分别路由到 `capable`、`balanced` 和 `fast` 模型组。Claude 风格的别名 `opus`、`sonnet`、`haiku` 也会映射到这些组。
+不带前缀的 `omfm` 会在整个已选池中路由；`omfm/capable`、`omfm/balanced`、`omfm/fast` 则会过滤到对应的模型组。Claude 风格的别名 `opus`、`sonnet`、`haiku` 也会映射到这些组。你也可以直接传入 `omfm model` 中选中的具体模型 ID，把请求钉死在那个模型上。
 
 Anthropic 入口还提供本地 `count_tokens` 估算；当请求 fallback 到 OpenAI 兼容 provider 路由时，会翻译常见的 tool-use/tool-result 流程。
 

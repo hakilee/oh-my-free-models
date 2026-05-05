@@ -68,7 +68,7 @@ OpenAI-compatible clients (OpenCode, Hermes Agent, OpenClaw, etc.):
 
 ```text
 url=http://localhost:4567/v1
-model=omfm/fast        # or omfm/balanced, omfm/capable
+model=omfm             # whole pool; or omfm/fast, omfm/balanced, omfm/capable
 ```
 
 Anthropic-compatible clients (Claude Code, etc.):
@@ -85,7 +85,7 @@ For Claude Code, you can create a shell alias that routes Opus, Sonnet, and Haik
 alias freeclaude='ANTHROPIC_BASE_URL=http://localhost:4567/anthropic ANTHROPIC_AUTH_TOKEN=omfm-local ANTHROPIC_API_KEY= CLAUDE_CODE_DISABLE_NONESSENTIAL_TRAFFIC=1 ANTHROPIC_DEFAULT_OPUS_MODEL=omfm/capable ANTHROPIC_DEFAULT_SONNET_MODEL=omfm/balanced ANTHROPIC_DEFAULT_HAIKU_MODEL=omfm/fast claude'
 ```
 
-In `omfm`, `omfm/capable`, `omfm/balanced`, and `omfm/fast` route to the `capable`, `balanced`, and `fast` model groups, respectively. The Claude-style aliases `opus`, `sonnet`, and `haiku` use those same groups.
+The bare `omfm` model routes across the entire selected pool, while `omfm/capable`, `omfm/balanced`, and `omfm/fast` filter to the matching model groups. The Claude-style aliases `opus`, `sonnet`, and `haiku` are equivalent to those same groups. You can also pass any specific model ID from `omfm model` to pin a request to it.
 
 The Anthropic surface also supports local `count_tokens` estimates and translates common tool-use/tool-result flows when a request falls back to an OpenAI-compatible provider route.
 

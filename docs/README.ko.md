@@ -68,7 +68,7 @@ OpenAI 호환 클라이언트(OpenCode, Hermes Agent, OpenClaw 등)에서는 다
 
 ```text
 url=http://localhost:4567/v1
-model=omfm/fast        # 또는 omfm/balanced, omfm/capable
+model=omfm             # 전체 풀; 또는 omfm/fast, omfm/balanced, omfm/capable
 ```
 
 Anthropic 호환 클라이언트(Claude Code 등)에서는 다음 환경변수를 설정합니다.
@@ -85,7 +85,7 @@ Claude Code의 모델 별칭도 `omfm` 그룹을 가리키도록 설정할 수 �
 alias freeclaude='ANTHROPIC_BASE_URL=http://localhost:4567/anthropic ANTHROPIC_AUTH_TOKEN=omfm-local ANTHROPIC_API_KEY= CLAUDE_CODE_DISABLE_NONESSENTIAL_TRAFFIC=1 ANTHROPIC_DEFAULT_OPUS_MODEL=omfm/capable ANTHROPIC_DEFAULT_SONNET_MODEL=omfm/balanced ANTHROPIC_DEFAULT_HAIKU_MODEL=omfm/fast claude'
 ```
 
-`omfm`에서 `omfm/capable`, `omfm/balanced`, `omfm/fast`는 각각 `capable`, `balanced`, `fast` 모델 그룹으로 라우팅됩니다. Claude 스타일 별칭인 `opus`, `sonnet`, `haiku`도 같은 그룹에 매핑됩니다.
+접두사 없는 `omfm`은 선택된 전체 풀로 라우팅되며, `omfm/capable`, `omfm/balanced`, `omfm/fast`는 각 모델 그룹으로 필터링됩니다. Claude 스타일 별칭인 `opus`, `sonnet`, `haiku`도 같은 그룹에 매핑됩니다. `omfm model`에서 고른 구체 모델 ID를 그대로 넘기면 해당 모델로 고정됩니다.
 
 Anthropic surface는 로컬 `count_tokens` 추정치도 제공하며, OpenAI 호환 provider route로 fallback되는 경우 일반적인 tool-use/tool-result 흐름을 번역합니다.
 
