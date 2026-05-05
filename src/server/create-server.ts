@@ -39,9 +39,15 @@ function color(value: string, code: number, enabled: boolean | undefined): strin
   return enabled ? `\u001b[${code}m${value}\u001b[0m` : value;
 }
 
+function statusColorCode(statusCode: number): number {
+  if (statusCode >= 500) return 31;
+  if (statusCode >= 400) return 33;
+  return 32;
+}
+
 export function formatServerLogEvent(event: ServerLogEvent, options: FormatServerLogEventOptions = {}): string {
   if (event.type === 'request') return `[omfm] #${event.id} ${color('request', 36, options.color)} ${event.method} ${safeLogValue(event.path)}`;
-  const statusColor = event.statusCode >= 500 ? 31 : event.statusCode >= 400 ? 33 : 32;
+  const statusColor = statusColorCode(event.statusCode);
   const details = [
     `[omfm] #${event.id} ${color('response', statusColor, options.color)}`,
     color(String(event.statusCode), statusColor, options.color),
@@ -105,17 +111,32 @@ async function availableFreeModels(store: ConfigStore, apiKeys: ProviderApiKeys,
   return catalog.models.filter(isCachedFreeModel);
 }
 
+interface SelectedModelsResult {
+  models: OmfmModel[];
+  byId: Map<string, OmfmModel>;
+  ids: string[];
+  modelGroups: ModelGroups;
+}
+
+async function selectedModelSelection(store: ConfigStore, apiKeys: ProviderApiKeys, fetchImpl?: FetchLike): Promise<SelectedModelsResult> {
+  const config = store.readConfig();
+  const freeModels = await availableFreeModels(store, apiKeys, fetchImpl);
+  const selected = new Set(config.selectedModelIds);
+  const selectedById = new Map(freeModels.filter((model) => selected.has(model.id)).map((model) => [model.id, model]));
+  const models = config.selectedModelIds.map((id) => selectedById.get(id)).filter((model): model is OmfmModel => Boolean(model));
+  return {
+    models,
+    byId: new Map(models.map((model) => [model.id, model])),
+    ids: models.map((model) => model.id),
+    modelGroups: config.modelGroups,
+  };
+}
+
 async function selectedModels(store: ConfigStore, apiKeys: ProviderApiKeys, fetchImpl?: FetchLike) {
   const config = store.readConfig();
   const freeModels = await availableFreeModels(store, apiKeys, fetchImpl);
   const selected = new Set(config.selectedModelIds);
   return freeModels.filter((model) => selected.has(model.id));
-}
-
-async function selectedFreeModels(store: ConfigStore, apiKeys: ProviderApiKeys, fetchImpl?: FetchLike): Promise<OmfmModel[]> {
-  const config = store.readConfig();
-  const byId = new Map((await selectedModels(store, apiKeys, fetchImpl)).map((model) => [model.id, model]));
-  return config.selectedModelIds.map((id) => byId.get(id)).filter((model): model is OmfmModel => Boolean(model));
 }
 
 function assertSelectedFree(models: OmfmModel[]): void {
@@ -137,10 +158,6 @@ function requestedModelForRouting(models: OmfmModel[], requestedModel: unknown):
   if (models.some((model) => model.id === requestedModel)) return requestedModel;
   const upstreamMatch = models.find((model) => upstreamId(model) === requestedModel);
   return upstreamMatch?.id ?? requestedModel;
-}
-
-function orderedSelectedModelIds(models: OmfmModel[], observations: ReturnType<ConfigStore['readLatency']>, requestedModel: unknown, modelGroups: ModelGroups): string[] {
-  return orderedCandidates(models.map((model) => model.id), observations, requestedModelForRouting(models, requestedModel), modelGroups);
 }
 
 function noUsableModelResponse(res: ServerResponse, lastError: unknown): void {
@@ -207,22 +224,24 @@ export function createOmfmServer(options: ServerOptions = {}): http.Server {
     try {
       const method = req.method ?? 'GET';
       const url = new URL(req.url ?? '/', 'http://localhost');
-      emitServerLog(requestLogger, { type: 'request', id, method, path: url.pathname });
-      res.once('finish', () => {
-        emitServerLog(requestLogger, {
-          type: 'response',
-          id,
-          method,
-          path: url.pathname,
-          statusCode: res.statusCode,
-          durationMs: Date.now() - startedAt,
-          requestedModel,
-          modelId: routedModel,
-          routeReason,
-          observedLatencyMs,
-          stream,
+      if (requestLogger) {
+        emitServerLog(requestLogger, { type: 'request', id, method, path: url.pathname });
+        res.once('finish', () => {
+          emitServerLog(requestLogger, {
+            type: 'response',
+            id,
+            method,
+            path: url.pathname,
+            statusCode: res.statusCode,
+            durationMs: Date.now() - startedAt,
+            requestedModel,
+            modelId: routedModel,
+            routeReason,
+            observedLatencyMs,
+            stream,
+          });
         });
-      });
+      }
       if (method === 'GET' && url.pathname === '/health') {
         json(res, 200, { ok: true, service: 'oh-my-free-models' });
         return;
@@ -247,36 +266,37 @@ export function createOmfmServer(options: ServerOptions = {}): http.Server {
         const body = await readBody(req);
         requestedModel = stringValue(body.model);
         stream = Boolean(body.stream);
-        const selected = await selectedFreeModels(store, apiKeys, fetchImpl);
-        assertSelectedFree(selected);
-        const byId = new Map(selected.map((model) => [model.id, model]));
+        const selected = await selectedModelSelection(store, apiKeys, fetchImpl);
+        assertSelectedFree(selected.models);
         const observations = store.readLatency();
-        const modelGroups = store.readConfig().modelGroups;
-        const routeChoice = chooseGroupedModel(selected.map((model) => model.id), observations, requestedModelForRouting(selected, body.model), modelGroups);
-        const candidateIds = orderedSelectedModelIds(selected, observations, body.model, modelGroups);
+        const routingModel = requestedModelForRouting(selected.models, body.model);
+        const routeChoice = requestLogger ? chooseGroupedModel(selected.ids, observations, routingModel, selected.modelGroups) : undefined;
+        const candidateIds = orderedCandidates(selected.ids, observations, routingModel, selected.modelGroups);
         let lastError: unknown;
         let attempts = 0;
         for (const modelId of candidateIds) {
           if (attempts >= maxRetries) break;
-          const model = byId.get(modelId);
+          const model = selected.byId.get(modelId);
           if (!model) continue;
           const apiKey = apiKeys[sourceOf(model)];
           if (!apiKey) {
             lastError = missingKeyMessage(model);
             continue;
           }
-          routedModel = modelId;
-          routeReason = modelId === routeChoice.modelId ? routeChoice.reason : 'failover';
-          observedLatencyMs = numberValue(observations[modelId]?.latencyMs);
+          if (requestLogger) {
+            routedModel = modelId;
+            routeReason = modelId === routeChoice?.modelId ? routeChoice.reason : 'failover';
+            observedLatencyMs = numberValue(observations[modelId]?.latencyMs);
+          }
           attempts += 1;
           const started = Date.now();
           const upstreamBody = withUpstreamModel(body, model);
           const upstream = sourceOf(model) === 'nvidia'
             ? await postNvidiaChatCompletion({ apiKey, body: upstreamBody, fetchImpl })
-            : await postOpenRouterChatCompletion({ apiKey, body: upstreamBody, stream: Boolean(body.stream), fetchImpl });
+            : await postOpenRouterChatCompletion({ apiKey, body: upstreamBody, stream, fetchImpl });
           if (upstream.ok) {
             store.recordSuccess(modelId, Date.now() - started);
-            if (body.stream) {
+            if (stream) {
               recordSuccessfulUsage(store, modelId, upstream.status);
               res.writeHead(upstream.status, { 'Content-Type': upstream.headers.get('content-type') ?? 'text/event-stream; charset=utf-8' });
               await pipeWebStreamToNode(upstream.body, res);
@@ -302,27 +322,28 @@ export function createOmfmServer(options: ServerOptions = {}): http.Server {
         const body = await readBody(req);
         requestedModel = stringValue(body.model);
         stream = Boolean(body.stream);
-        const selected = await selectedFreeModels(store, apiKeys, fetchImpl);
-        assertSelectedFree(selected);
-        const byId = new Map(selected.map((model) => [model.id, model]));
+        const selected = await selectedModelSelection(store, apiKeys, fetchImpl);
+        assertSelectedFree(selected.models);
         const observations = store.readLatency();
-        const modelGroups = store.readConfig().modelGroups;
-        const routeChoice = chooseGroupedModel(selected.map((model) => model.id), observations, requestedModelForRouting(selected, body.model), modelGroups);
-        const candidateIds = orderedSelectedModelIds(selected, observations, body.model, modelGroups);
+        const routingModel = requestedModelForRouting(selected.models, body.model);
+        const routeChoice = requestLogger ? chooseGroupedModel(selected.ids, observations, routingModel, selected.modelGroups) : undefined;
+        const candidateIds = orderedCandidates(selected.ids, observations, routingModel, selected.modelGroups);
         let lastError: unknown;
         let attempts = 0;
         for (const modelId of candidateIds) {
           if (attempts >= maxRetries) break;
-          const model = byId.get(modelId);
+          const model = selected.byId.get(modelId);
           if (!model) continue;
           const apiKey = apiKeys[sourceOf(model)];
           if (!apiKey) {
             lastError = missingKeyMessage(model);
             continue;
           }
-          routedModel = modelId;
-          routeReason = modelId === routeChoice.modelId ? routeChoice.reason : 'failover';
-          observedLatencyMs = numberValue(observations[modelId]?.latencyMs);
+          if (requestLogger) {
+            routedModel = modelId;
+            routeReason = modelId === routeChoice?.modelId ? routeChoice.reason : 'failover';
+            observedLatencyMs = numberValue(observations[modelId]?.latencyMs);
+          }
           attempts += 1;
           const started = Date.now();
           if (sourceOf(model) === 'nvidia') {
@@ -341,7 +362,7 @@ export function createOmfmServer(options: ServerOptions = {}): http.Server {
           let upstream = await postOpenRouterAnthropicMessage({ apiKey, body: upstreamBody, headers: headersFromIncoming(req), fetchImpl });
           if (!upstream.ok && (upstream.status === 404 || upstream.status === 405)) {
             const fallbackBody = anthropicToOpenAI(body, upstreamId(model));
-            upstream = await postOpenRouterChatCompletion({ apiKey, body: fallbackBody, stream: Boolean(body.stream), fetchImpl });
+            upstream = await postOpenRouterChatCompletion({ apiKey, body: fallbackBody, stream, fetchImpl });
             if (upstream.ok) {
               store.recordSuccess(modelId, Date.now() - started);
               await writeOpenAIAsAnthropic(upstream, res, body, modelId, (data) => recordSuccessfulUsage(store, modelId, upstream.status, data));
@@ -350,7 +371,7 @@ export function createOmfmServer(options: ServerOptions = {}): http.Server {
           }
           if (upstream.ok) {
             store.recordSuccess(modelId, Date.now() - started);
-            if (body.stream) {
+            if (stream) {
               recordSuccessfulUsage(store, modelId, upstream.status);
               res.writeHead(upstream.status, { 'Content-Type': upstream.headers.get('content-type') ?? 'text/event-stream; charset=utf-8' });
               await pipeWebStreamToNode(upstream.body, res);

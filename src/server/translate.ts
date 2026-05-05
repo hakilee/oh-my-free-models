@@ -48,9 +48,10 @@ function isRecord(value: unknown): value is Record<string, any> {
 }
 
 function sanitizeAnthropicId(value: unknown): string {
-  const raw = typeof value === 'string' && value ? value : `toolu_${Date.now()}`;
+  const fallback = `toolu_${Date.now()}`;
+  const raw = typeof value === 'string' && value ? value : fallback;
   const sanitized = raw.replace(/[^a-zA-Z0-9_-]/g, '_');
-  return sanitized || `toolu_${Date.now()}`;
+  return sanitized || fallback;
 }
 
 function imageUrlFromAnthropic(block: Record<string, any>): string | undefined {
@@ -204,11 +205,9 @@ export function openAIToAnthropic(response: Record<string, any>, fallbackModel: 
   const content = contentFromOpenAI(message.content ?? choice.text ?? message.refusal ?? '');
   const blocks: Array<Record<string, unknown>> = [];
   if (content) blocks.push({ type: 'text', text: content });
-  const toolCalls = [...(message.tool_calls ?? [])];
-  if (message.function_call) {
-    toolCalls.push({ id: `toolu_${Date.now()}`, type: 'function', function: message.function_call });
-  }
-  for (const toolCall of toolCalls) {
+  const toolCalls = Array.isArray(message.tool_calls) ? message.tool_calls : [];
+  const allToolCalls = message.function_call ? [...toolCalls, { id: `toolu_${Date.now()}`, type: 'function', function: message.function_call }] : toolCalls;
+  for (const toolCall of allToolCalls) {
     if (toolCall?.type && toolCall.type !== 'function') continue;
     blocks.push({
       type: 'tool_use',

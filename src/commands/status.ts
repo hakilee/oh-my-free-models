@@ -8,7 +8,7 @@ export function getStatus(store = new ConfigStore()) {
   const latency = store.readLatency();
   const bestChoice = config.selectedModelIds.length > 0 ? chooseGroupedModel(config.selectedModelIds, latency, 'auto', config.modelGroups) : undefined;
   const bestLatency = bestChoice ? latency[bestChoice.modelId]?.latencyMs : undefined;
-  const best = typeof bestLatency === 'number' && Number.isFinite(bestLatency) ? { id: bestChoice!.modelId, latencyMs: bestLatency, reason: bestChoice!.reason } : undefined;
+  const best = bestChoice && typeof bestLatency === 'number' && Number.isFinite(bestLatency) ? { id: bestChoice.modelId, latencyMs: bestLatency, reason: bestChoice.reason } : undefined;
   const running = daemon ? isProcessRunning(daemon.pid) : false;
   return { running, daemon, port: daemon?.port ?? config.port, configPath: store.paths.configPath, selectedModelCount: config.selectedModelIds.length, bestModel: best };
 }

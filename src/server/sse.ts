@@ -16,13 +16,14 @@ function writeSseEvent(res: ServerResponse, event: string, data: unknown): void 
 
 function completeSseFrames(buffer: string): { frames: string[]; rest: string } {
   const frames: string[] = [];
-  let rest = buffer;
-  while (true) {
-    const match = /\r?\n\r?\n/.exec(rest);
-    if (!match || match.index === undefined) return { frames, rest };
-    frames.push(rest.slice(0, match.index));
-    rest = rest.slice(match.index + match[0].length);
+  const separator = /\r?\n\r?\n/g;
+  let cursor = 0;
+  let match: RegExpExecArray | null;
+  while ((match = separator.exec(buffer))) {
+    frames.push(buffer.slice(cursor, match.index));
+    cursor = separator.lastIndex;
   }
+  return { frames, rest: buffer.slice(cursor) };
 }
 
 interface OpenAIToolStreamState {
@@ -44,7 +45,7 @@ export async function pipeWebStreamToNode(stream: ReadableStream<Uint8Array> | n
     while (true) {
       const { done, value } = await reader.read();
       if (done) break;
-      res.write(Buffer.from(value));
+      res.write(value);
     }
   } finally {
     res.end();
@@ -127,6 +128,7 @@ export async function pipeOpenAIStreamAsAnthropic(stream: ReadableStream<Uint8Ar
           if (!line.startsWith('data:')) continue;
           const data = line.slice(5).trim();
           if (!data || data === '[DONE]') continue;
+          if (!data.startsWith('{')) continue;
           try {
             const chunk = JSON.parse(data) as { usage?: { completion_tokens?: number; output_tokens?: number }; choices?: Array<{ finish_reason?: unknown; delta?: { content?: string; function_call?: { name?: string; arguments?: string }; tool_calls?: Array<{ index?: number; id?: string; function?: { name?: string; arguments?: string } }> } }> };
             const choice = chunk.choices?.[0];
@@ -172,7 +174,7 @@ export async function pipeOpenAIStreamAsAnthropic(stream: ReadableStream<Uint8Ar
   }
   if (!textBlockOpen && toolBlocks.size === 0) ensureTextBlock();
   stopTextBlock();
-  for (const state of [...toolBlocks.values()].sort((a, b) => a.blockIndex - b.blockIndex)) {
+  for (const state of toolBlocks.values()) {
     if (!state.started) {
       writeSseEvent(res, 'content_block_start', { type: 'content_block_start', index: state.blockIndex, content_block: { type: 'tool_use', id: state.id, name: state.name || 'tool', input: {} } });
       if (state.bufferedArguments) writeSseEvent(res, 'content_block_delta', { type: 'content_block_delta', index: state.blockIndex, delta: { type: 'input_json_delta', partial_json: state.bufferedArguments } });
