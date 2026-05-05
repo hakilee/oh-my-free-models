@@ -32,9 +32,9 @@ function sourceOf(model: OmfmModel): ModelSource {
 
 export async function probeSelectedModels(options: ProbeSelectedModelsOptions): Promise<void> {
   if (options.signal?.aborted) return;
-  const apiKeys = requireAnyProviderApiKey(options.env ?? process.env, options.store.paths.root);
   const config = options.store.readConfig();
   if (config.selectedModelIds.length === 0) return;
+  const apiKeys = requireAnyProviderApiKey(options.env ?? process.env, options.store.paths.root);
   const selectedIds = new Set(config.selectedModelIds);
   const catalog = await loadModelCatalog({ apiKeys, fetchImpl: options.fetchImpl, store: options.store });
   if (options.signal?.aborted) return;

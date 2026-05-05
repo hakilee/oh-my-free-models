@@ -47,7 +47,7 @@ describe('background latency prober', () => {
     let called = false;
     await probeSelectedModels({
       store,
-      env: { OPENROUTER_API_KEY: 'key' } as NodeJS.ProcessEnv,
+      env: {} as NodeJS.ProcessEnv,
       runScheduler: async () => {
         called = true;
         return 'completed';
