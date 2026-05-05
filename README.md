@@ -29,7 +29,7 @@ You give `omfm` an allowlist of free models you actually want to use. It runs as
 | Latency tracking | Measures and caches per-model latency from your machine. |
 | Request routing | Routes generic requests to the lowest-latency live candidate. |
 | Cooldown | Keeps models that just hit 429 or 402 out of rotation for about 10 minutes. |
-| Client compatibility | Exposes OpenAI-compatible `/v1` and Anthropic-compatible `/anthropic` surfaces. |
+| Client compatibility | Exposes OpenAI-compatible `/v1` and Anthropic-compatible `/anthropic` surfaces, including Anthropic tool-use fallback and local token counting. |
 
 Your agent points at `localhost`. Provider switching, rate-limit retries, and picking the currently-fast model all happen below it.
 
@@ -49,9 +49,9 @@ omfm start        # serves http://localhost:4567
 | `omfm model` | Open the picker and save selected free models. |
 | `omfm model --all` | Print all eligible models without opening the picker. |
 | `omfm model --group fast --best` | Probe the fast group and print the best current candidate. |
-| `omfm start` | Run the local proxy in the foreground. |
+| `omfm start` | Run the local proxy in the foreground with request/response routing logs. |
 | `omfm start --daemon` | Run the local proxy in the background. |
-| `omfm status` | Show daemon and config status. |
+| `omfm status` | Show daemon, config, and best-route status. |
 | `omfm stop` | Stop the background daemon. |
 | `omfm doctor` | Inspect config paths, keys, model cache, and daemon state. |
 | `omfm usage` | Show per-model request and token observations. |
@@ -79,6 +79,8 @@ alias freeclaude='ANTHROPIC_BASE_URL=http://localhost:4567/anthropic ANTHROPIC_A
 ```
 
 In `omfm`, `omfm/capable`, `omfm/balanced`, and `omfm/fast` route to the `capable`, `balanced`, and `fast` model groups, respectively. The Claude-style aliases `opus`, `sonnet`, and `haiku` use those same groups.
+
+The Anthropic surface also supports local `count_tokens` estimates and translates common tool-use/tool-result flows when a request falls back to an OpenAI-compatible provider route.
 
 ## Keep context sizes consistent
 

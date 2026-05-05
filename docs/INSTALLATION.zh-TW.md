@@ -80,12 +80,14 @@ Latency probe 以小規模並行批次執行，速率設定保守。`rate-limit`
 
 | 命令 | 用途 |
 | --- | --- |
-| `omfm start` | 在前景啟動代理。用 `Ctrl+C` 停止。 |
+| `omfm start` | 在前景啟動代理，並輸出 request/response 路由日誌。用 `Ctrl+C` 停止。 |
 | `omfm start --daemon` | 以背景 daemon 啟動代理。 |
-| `omfm status` | 查看 daemon 狀態。 |
+| `omfm status` | 查看 daemon、config 與 best-route 狀態。 |
 | `omfm stop` | 停止背景 daemon。 |
 
 代理執行期間，會約每 5 分鐘以保守的背景 probe 批次刷新已選模型的 latency。Probe 使用與 picker 相同的 cooldown 規則。
+
+前景 `omfm start` 也會輸出單行 request/response 日誌；可用時包含 requested model、routed model、route reason、cached latency、status、duration 與 stream 標記。
 
 預設 port 為 `4567`，需要時可以改用其他 port。
 
@@ -124,8 +126,10 @@ export ANTHROPIC_API_KEY=
 
 - `POST /anthropic/v1/messages`
 - `POST /anthropic/messages`（alias）
+- `POST /anthropic/v1/messages/count_tokens`
+- `POST /anthropic/messages/count_tokens`（alias）
 
-`omfm` 接受本機 Anthropic 認證標頭，並以對應的 provider 金鑰轉發請求。若該 provider 本身有暴露 Anthropic 相容端點（例如 OpenRouter 的 Anthropic surface），`omfm` 會直接使用；否則退回僅支援純文字的 Anthropic→OpenAI 轉譯。
+`omfm` 接受本機 Anthropic 認證標頭，並以對應的 provider 金鑰轉發請求。若該 provider 本身有暴露 Anthropic 相容端點（例如 OpenRouter 的 Anthropic surface），`omfm` 會直接使用；否則 fallback 到 Anthropic/OpenAI 轉譯層，支援文字與常見用戶端 tool-use 流程。Token count 回傳本機相容性估算值，不是 provider tokenizer 的精確計數。
 
 ## 6. 診斷
 

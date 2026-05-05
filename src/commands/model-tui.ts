@@ -228,26 +228,25 @@ async function runRawModelTui(options: RawModelTuiOptions): Promise<ModelTuiResu
   render();
   setRawMode(stdin, true);
   stdin.resume?.();
-  const probePromise = options
-    .startProbes({
-      signal: controller.signal,
-      onRow: (update) => {
-        const rowIndex = rows.findIndex((candidate) => candidate.model.id === update.modelId);
-        const row = rowIndex >= 0 ? rows[rowIndex] : undefined;
-        if (!row) return;
-        if (update.status === 'failed') {
-          rows.splice(rowIndex, 1);
-          selected.delete(update.modelId);
-          for (const group of MODEL_GROUP_NAMES) groupSelections[group] = groupSelections[group].filter((candidate) => candidate !== update.modelId);
-          if (!done) render();
-          return;
-        }
-        if (update.status) row.status = update.status;
-        if (typeof update.latencyMs === 'number') row.latencyMs = update.latencyMs;
-        row.recommendation = recommendModel(row);
+  options.startProbes({
+    signal: controller.signal,
+    onRow: (update) => {
+      const rowIndex = rows.findIndex((candidate) => candidate.model.id === update.modelId);
+      const row = rowIndex >= 0 ? rows[rowIndex] : undefined;
+      if (!row) return;
+      if (update.status === 'failed') {
+        rows.splice(rowIndex, 1);
+        selected.delete(update.modelId);
+        for (const group of MODEL_GROUP_NAMES) groupSelections[group] = groupSelections[group].filter((candidate) => candidate !== update.modelId);
         if (!done) render();
-      },
-    })
+        return;
+      }
+      if (update.status) row.status = update.status;
+      if (typeof update.latencyMs === 'number') row.latencyMs = update.latencyMs;
+      row.recommendation = recommendModel(row);
+      if (!done) render();
+    },
+  })
     .then((state) => {
       terminalState = state;
       if (!done) render();

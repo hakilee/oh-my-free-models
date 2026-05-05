@@ -29,7 +29,7 @@
 | Latency 追蹤 | 從你的機器實際測量每個模型的 latency，並加以快取。 |
 | 請求路由 | 把一般請求導向當下 latency 最低的可用候選。 |
 | Cooldown | 剛被 429 或 402 打回的模型，暫停約 10 分鐘不列入候選。 |
-| 客戶端相容 | 同時暴露 OpenAI 相容的 `/v1` 和 Anthropic 相容的 `/anthropic` 介面。 |
+| 客戶端相容 | 暴露 OpenAI 相容的 `/v1` 和 Anthropic 相容的 `/anthropic` 介面，並支援 Anthropic tool-use fallback 與本機 token count。 |
 
 Agent 只認識 `localhost`。provider 切換、rate-limit 重試、挑出當前最快模型，都在它下面靜靜發生。
 
@@ -49,9 +49,9 @@ omfm start        # 啟動 http://localhost:4567
 | `omfm model` | 開啟 picker，並儲存選取的免費模型。 |
 | `omfm model --all` | 不開啟 picker，直接列出所有可選模型。 |
 | `omfm model --group fast --best` | Probe fast 群組，並輸出目前最佳候選。 |
-| `omfm start` | 在前景執行本機代理。 |
+| `omfm start` | 在前景執行本機代理，並輸出 request/response 路由日誌。 |
 | `omfm start --daemon` | 在背景以 daemon 方式執行本機代理。 |
-| `omfm status` | 查看 daemon 和 config 狀態。 |
+| `omfm status` | 查看 daemon、config 與 best-route 狀態。 |
 | `omfm stop` | 停止背景 daemon。 |
 | `omfm doctor` | 檢查 config 路徑、金鑰、模型快取和 daemon 狀態。 |
 | `omfm usage` | 查看每個模型的請求數和 token 觀測值。 |
@@ -79,6 +79,8 @@ alias freeclaude='ANTHROPIC_BASE_URL=http://localhost:4567/anthropic ANTHROPIC_A
 ```
 
 在 `omfm` 中，`omfm/capable`、`omfm/balanced`、`omfm/fast` 會分別路由到 `capable`、`balanced`、`fast` 模型群組。Claude 風格的別名 `opus`、`sonnet`、`haiku` 也會對應到同樣的群組。
+
+Anthropic 介面也提供本機 `count_tokens` 估算；當請求 fallback 到 OpenAI 相容 provider 路由時，會轉譯常見的 tool-use/tool-result 流程。
 
 ## 保持 context 大小一致
 

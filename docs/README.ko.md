@@ -29,7 +29,7 @@ Free tier 코딩 에이전트는 스펙 시트에서는 멀쩡해 보이지만, 
 | Latency 추적 | 모델별 latency를 내 머신 기준으로 측정하고 캐시합니다. |
 | 요청 라우팅 | 모델을 직접 지정하지 않은 요청을 가장 빠른 살아있는 후보로 보냅니다. |
 | Cooldown | 방금 429/402 를 받은 모델은 약 10분 동안 후보에서 제외합니다. |
-| 클라이언트 호환성 | OpenAI 호환 `/v1` 과 Anthropic 호환 `/anthropic` surface를 동시에 노출합니다. |
+| 클라이언트 호환성 | OpenAI 호환 `/v1` 과 Anthropic 호환 `/anthropic` surface를 노출하고, Anthropic tool-use fallback과 로컬 token count도 지원합니다. |
 
 에이전트는 `localhost` 만 바라봅니다. provider 전환, rate-limit 우회, "지금 빠른 모델" 선택은 그 아래에서 조용히 일어납니다.
 
@@ -49,9 +49,9 @@ omfm start        # http://localhost:4567 서빙
 | `omfm model` | Picker를 열고 사용할 free 모델을 저장합니다. |
 | `omfm model --all` | Picker 없이 선택 가능한 모든 모델을 출력합니다. |
 | `omfm model --group fast --best` | fast 그룹을 probe하고 현재 가장 좋은 후보를 출력합니다. |
-| `omfm start` | 로컬 프록시를 foreground로 실행합니다. |
+| `omfm start` | 로컬 프록시를 foreground로 실행하고 request/response 라우팅 로그를 출력합니다. |
 | `omfm start --daemon` | 로컬 프록시를 background daemon으로 실행합니다. |
-| `omfm status` | daemon과 config 상태를 확인합니다. |
+| `omfm status` | daemon, config, best-route 상태를 확인합니다. |
 | `omfm stop` | background daemon을 중지합니다. |
 | `omfm doctor` | config 경로, 키, 모델 캐시, daemon 상태를 점검합니다. |
 | `omfm usage` | 모델별 요청 수와 token 관측치를 확인합니다. |
@@ -79,6 +79,8 @@ alias freeclaude='ANTHROPIC_BASE_URL=http://localhost:4567/anthropic ANTHROPIC_A
 ```
 
 `omfm`에서 `omfm/capable`, `omfm/balanced`, `omfm/fast`는 각각 `capable`, `balanced`, `fast` 모델 그룹으로 라우팅됩니다. Claude 스타일 별칭인 `opus`, `sonnet`, `haiku`도 같은 그룹에 매핑됩니다.
+
+Anthropic surface는 로컬 `count_tokens` 추정치도 제공하며, OpenAI 호환 provider route로 fallback되는 경우 일반적인 tool-use/tool-result 흐름을 번역합니다.
 
 ## 컨텍스트 크기 맞추기
 

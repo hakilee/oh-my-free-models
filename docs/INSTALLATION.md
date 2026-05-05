@@ -80,12 +80,14 @@ Use the command that matches how you want the proxy to run.
 
 | Command | Use |
 | --- | --- |
-| `omfm start` | Start the proxy in the foreground. Stop it with `Ctrl+C`. |
+| `omfm start` | Start the proxy in the foreground with request/response routing logs. Stop it with `Ctrl+C`. |
 | `omfm start --daemon` | Start the proxy as a background daemon. |
-| `omfm status` | Show daemon status. |
+| `omfm status` | Show daemon, config, and best-route status. |
 | `omfm stop` | Stop the background daemon. |
 
 While the proxy is running, it refreshes selected-model latency in conservative background probe batches about every 5 minutes. Probes reuse the same cooldown rules as the picker.
+
+Foreground `omfm start` also prints one-line request and response logs, including the requested model, routed model, route reason, cached latency, status, duration, and stream flag when available.
 
 Default port is `4567`. Override it when needed.
 
@@ -124,8 +126,10 @@ Required endpoints in `0.0.1`:
 
 - `POST /anthropic/v1/messages`
 - `POST /anthropic/messages` (alias)
+- `POST /anthropic/v1/messages/count_tokens`
+- `POST /anthropic/messages/count_tokens` (alias)
 
-`omfm` accepts the local Anthropic auth header and forwards requests with the matching provider key. If the provider exposes its own Anthropic-compatible endpoint (e.g. OpenRouter's Anthropic surface), `omfm` uses it directly; otherwise it falls back to a minimal text-only Anthropic-to-OpenAI translation.
+`omfm` accepts the local Anthropic auth header and forwards requests with the matching provider key. If the provider exposes its own Anthropic-compatible endpoint (e.g. OpenRouter's Anthropic surface), `omfm` uses it directly; otherwise it falls back to Anthropic/OpenAI translation for text and common client tool-use flows. Token counting returns a local compatibility estimate, not an exact provider tokenizer count.
 
 ## 6. Diagnostics
 

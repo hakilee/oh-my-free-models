@@ -29,7 +29,7 @@ Free tier のコーディング agent はスペック上は魅力的に見えて
 | Latency 追跡 | 自分のマシンからモデルごとの latency を計測してキャッシュします。 |
 | リクエストルーティング | モデル未指定のリクエストを、今一番 latency が低い生きている候補へルーティングします。 |
 | Cooldown | 直前に 429 や 402 を受けたモデルは約 10 分間候補から外します。 |
-| クライアント互換性 | OpenAI 互換の `/v1` と Anthropic 互換の `/anthropic` エンドポイントを同時に公開します。 |
+| クライアント互換性 | OpenAI 互換の `/v1` と Anthropic 互換の `/anthropic` エンドポイントを公開し、Anthropic tool-use fallback とローカル token count もサポートします。 |
 
 agent は `localhost` だけを見ていれば OK。provider の切り替え、rate-limit 後のリトライ、「今速いモデル」の選択はその下で静かに行われます。
 
@@ -49,9 +49,9 @@ omfm start        # http://localhost:4567 を起動
 | `omfm model` | picker を開き、選択した free モデルを保存します。 |
 | `omfm model --all` | picker を開かずに、選択可能な全モデルを表示します。 |
 | `omfm model --group fast --best` | fast グループを probe し、現在の最良候補を表示します。 |
-| `omfm start` | ローカルプロキシを foreground で起動します。 |
+| `omfm start` | ローカルプロキシを foreground で起動し、request/response ルーティングログを出力します。 |
 | `omfm start --daemon` | ローカルプロキシを background daemon として起動します。 |
-| `omfm status` | daemon と config の状態を表示します。 |
+| `omfm status` | daemon、config、best-route の状態を表示します。 |
 | `omfm stop` | background daemon を停止します。 |
 | `omfm doctor` | config パス、キー、モデルキャッシュ、daemon 状態を確認します。 |
 | `omfm usage` | モデルごとの request 数と token 観測値を表示します。 |
@@ -79,6 +79,8 @@ alias freeclaude='ANTHROPIC_BASE_URL=http://localhost:4567/anthropic ANTHROPIC_A
 ```
 
 `omfm` では、`omfm/capable`、`omfm/balanced`、`omfm/fast` がそれぞれ `capable`、`balanced`、`fast` のモデルグループにルーティングされます。Claude 形式のエイリアスである `opus`、`sonnet`、`haiku` も同じグループにマッピングされます。
+
+Anthropic surface はローカルの `count_tokens` 推定にも対応します。リクエストが OpenAI 互換 provider route に fallback する場合は、一般的な tool-use/tool-result の流れも変換します。
 
 ## コンテキストサイズを揃える
 
