@@ -8,9 +8,7 @@ English | [한국어](./docs/README.ko.md) | [简体中文](./docs/README.zh-CN.
 
 `oh-my-free-models` (`omfm`) is a local proxy that routes your coding agent to the fastest free model across providers. Point your OpenAI- or Anthropic-compatible agent at `localhost`, pick a few free models, and `omfm` keeps requests flowing as latency, rate limits, and quotas shift underneath.
 
-<p align="center">
-  <video src="https://github.com/user-attachments/assets/44c07928-1544-4b33-a472-41e82f7aa7d7" controls muted playsinline width="720"></video>
-</p>
+https://github.com/user-attachments/assets/44c07928-1544-4b33-a472-41e82f7aa7d7
 
 > `omfm` driving OpenCode against routed free models.
 
