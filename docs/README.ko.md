@@ -9,10 +9,10 @@
 `oh-my-free-models` (`omfm`) 는 코딩 에이전트를 여러 무료 provider 중 지금 가장 빠른 모델로 라우팅하는 로컬 프록시입니다. OpenAI 또는 Anthropic 호환 에이전트의 baseURL을 `localhost` 로 바꾸고 free 모델 몇 개를 골라두면, latency·rate-limit·quota가 흔들리는 동안에도 `omfm` 이 요청을 계속 흘려보냅니다.
 
 <p align="center">
-  <video src="../oh-my-free-models-opencode.mp4" controls muted playsinline width="720"></video>
+  <video src="https://github.com/user-attachments/assets/44c07928-1544-4b33-a472-41e82f7aa7d7" controls muted playsinline width="720"></video>
 </p>
 
-> `omfm` 이 OpenCode를 라우팅된 free 모델에 연결해 동작하는 모습. 플레이어가 로드되지 않으면 [영상을 다운로드](../oh-my-free-models-opencode.mp4)하세요.
+> `omfm` 이 OpenCode를 라우팅된 free 모델에 연결해 동작하는 모습.
 
 ## 왜 필요한가
 

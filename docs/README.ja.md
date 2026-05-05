@@ -9,10 +9,10 @@
 `oh-my-free-models`（`omfm`）は、コーディング agent を複数の provider の中で今一番速い free モデルへルーティングするローカルプロキシです。OpenAI または Anthropic 互換の agent の baseURL を `localhost` に向け、free モデルをいくつか選んでおくだけで、latency・rate-limit・quota が揺れ動いても `omfm` がリクエストを流し続けます。
 
 <p align="center">
-  <video src="../oh-my-free-models-opencode.mp4" controls muted playsinline width="720"></video>
+  <video src="https://github.com/user-attachments/assets/44c07928-1544-4b33-a472-41e82f7aa7d7" controls muted playsinline width="720"></video>
 </p>
 
-> `omfm` が OpenCode をルーティングされた free モデルに繋いで動かしているデモ。プレイヤーが読み込まれない場合は[動画をダウンロード](../oh-my-free-models-opencode.mp4)してください。
+> `omfm` が OpenCode をルーティングされた free モデルに繋いで動かしているデモ。
 
 ## なぜ必要か
 
