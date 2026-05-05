@@ -67,7 +67,8 @@ omfm start        # http://localhost:4567 を起動
 OpenAI 互換クライアント（OpenCode、Hermes Agent、OpenClaw など）:
 
 ```text
-baseURL=http://localhost:4567/v1
+url=http://localhost:4567/v1
+model=omfm/fast        # または omfm/balanced, omfm/capable
 ```
 
 Anthropic 互換クライアント（Claude Code など）:

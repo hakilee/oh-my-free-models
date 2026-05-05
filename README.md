@@ -67,7 +67,8 @@ omfm start        # serves http://localhost:4567
 OpenAI-compatible clients (OpenCode, Hermes Agent, OpenClaw, etc.):
 
 ```text
-baseURL=http://localhost:4567/v1
+url=http://localhost:4567/v1
+model=omfm/fast        # or omfm/balanced, omfm/capable
 ```
 
 Anthropic-compatible clients (Claude Code, etc.):

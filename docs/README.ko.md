@@ -67,7 +67,8 @@ omfm start        # http://localhost:4567 서빙
 OpenAI 호환 클라이언트(OpenCode, Hermes Agent, OpenClaw 등)에서는 다음 값을 사용합니다.
 
 ```text
-baseURL=http://localhost:4567/v1
+url=http://localhost:4567/v1
+model=omfm/fast        # 또는 omfm/balanced, omfm/capable
 ```
 
 Anthropic 호환 클라이언트(Claude Code 등)에서는 다음 환경변수를 설정합니다.

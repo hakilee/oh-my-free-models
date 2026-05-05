@@ -67,7 +67,8 @@ omfm start        # 启动 http://localhost:4567
 OpenAI 兼容客户端（OpenCode、Hermes Agent、OpenClaw 等）：
 
 ```text
-baseURL=http://localhost:4567/v1
+url=http://localhost:4567/v1
+model=omfm/fast        # 或 omfm/balanced, omfm/capable
 ```
 
 Anthropic 兼容客户端（Claude Code 等）：
