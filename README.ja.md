@@ -56,6 +56,20 @@ export ANTHROPIC_AUTH_TOKEN=omfm-local
 export ANTHROPIC_API_KEY=
 ```
 
+Claude Code のモデルエイリアスを `omfm` のモデルグループに割り当てることもできます:
+
+```bash
+alias freeclaude='ANTHROPIC_BASE_URL=http://localhost:4567/anthropic ANTHROPIC_AUTH_TOKEN=omfm-local ANTHROPIC_API_KEY= CLAUDE_CODE_DISABLE_NONESSENTIAL_TRAFFIC=1 ANTHROPIC_DEFAULT_OPUS_MODEL=omfm/capable ANTHROPIC_DEFAULT_SONNET_MODEL=omfm/balanced ANTHROPIC_DEFAULT_HAIKU_MODEL=omfm/fast claude'
+```
+
+`omfm` では、`omfm/capable`、`omfm/balanced`、`omfm/fast` がそれぞれ `capable`、`balanced`、`fast` のモデルグループにルーティングされます。Claude 形式のエイリアスである `opus`、`sonnet`、`haiku` も同じグループにマッピングされます。
+
+## コンテキストサイズを揃える
+
+コンテキストオーバーフローは実際に起こり得ます。`omfm` はリクエストをルーティング先のモデルへそのまま転送します。agent が蓄積した会話をコンパクト化、要約、切り詰めることはありません。長時間のセッションが 1M-token モデルで始まり、その後 128k/200k モデルへルーティングまたは failover されると、prompt が小さいモデルの context window を超えた時点で上流プロバイダーがリクエストを拒否する可能性があります。クライアント側のコンパクションで避けられる場合はありますが、常に自動で起きるとは考えないでください。
+
+モデルを選ぶときは、ルーティング対象のプールごとに、コンテキスト長の階層を揃えてください。たとえば長時間のセッションを `capable` で使うなら、そのグループには ~1M-token モデルだけを入れるか、`fast`/`balanced`/`capable` 全体を 128k/200k 前後に揃えます。`omfm model` picker は各モデルの context サイズを表示します。値が不明な場合は `—` と表示されます。長時間のセッションではリスクとして扱ってください。
+
 ## もっと知る
 
 - セットアップ、全 CLI フラグ、daemon 制御、診断: [INSTALLATION.ja.md](./INSTALLATION.ja.md)

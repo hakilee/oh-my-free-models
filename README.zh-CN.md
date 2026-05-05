@@ -56,6 +56,20 @@ export ANTHROPIC_AUTH_TOKEN=omfm-local
 export ANTHROPIC_API_KEY=
 ```
 
+Claude Code 的模型别名也可以指向 `omfm` 的模型组：
+
+```bash
+alias freeclaude='ANTHROPIC_BASE_URL=http://localhost:4567/anthropic ANTHROPIC_AUTH_TOKEN=omfm-local ANTHROPIC_API_KEY= CLAUDE_CODE_DISABLE_NONESSENTIAL_TRAFFIC=1 ANTHROPIC_DEFAULT_OPUS_MODEL=omfm/capable ANTHROPIC_DEFAULT_SONNET_MODEL=omfm/balanced ANTHROPIC_DEFAULT_HAIKU_MODEL=omfm/fast claude'
+```
+
+在 `omfm` 中，`omfm/capable`、`omfm/balanced` 和 `omfm/fast` 会分别路由到 `capable`、`balanced` 和 `fast` 模型组。Claude 风格的别名 `opus`、`sonnet`、`haiku` 也会映射到这些组。
+
+## 保持上下文窗口大小一致
+
+上下文溢出确实可能发生。`omfm` 会把请求原样转发给被路由到的模型；它不会压缩、总结或截断 Agent 已累积的对话。如果一个长会话一开始使用 1M token 的模型，之后又被路由或故障切换到 128k/200k 的模型，那么一旦提示内容超过较小模型的上下文窗口，上游就可能拒绝请求。客户端侧的压缩/总结可以避免这个问题，但不要假设它一定会自动发生。
+
+选择模型时，请让每个可路由的模型池保持在同一档上下文容量。例如，如果长会话使用 `capable`，就只把约 1M token 的模型放进该组；或者让 `fast`/`balanced`/`capable` 都维持在 128k/200k 左右。`omfm model` 选择器会显示每个模型的上下文大小；未知值显示为 `—`，长会话应将其视为风险。
+
 ## 更多
 
 - 安装、全部 CLI 参数、daemon 控制、诊断：[INSTALLATION.zh-CN.md](./INSTALLATION.zh-CN.md)

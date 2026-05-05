@@ -56,6 +56,20 @@ export ANTHROPIC_AUTH_TOKEN=omfm-local
 export ANTHROPIC_API_KEY=
 ```
 
+Claude Code 的模型別名（alias）也可以對應到 `omfm` 群組：
+
+```bash
+alias freeclaude='ANTHROPIC_BASE_URL=http://localhost:4567/anthropic ANTHROPIC_AUTH_TOKEN=omfm-local ANTHROPIC_API_KEY= CLAUDE_CODE_DISABLE_NONESSENTIAL_TRAFFIC=1 ANTHROPIC_DEFAULT_OPUS_MODEL=omfm/capable ANTHROPIC_DEFAULT_SONNET_MODEL=omfm/balanced ANTHROPIC_DEFAULT_HAIKU_MODEL=omfm/fast claude'
+```
+
+在 `omfm` 中，`omfm/capable`、`omfm/balanced`、`omfm/fast` 會分別路由到 `capable`、`balanced`、`fast` 模型群組。Claude 風格的別名 `opus`、`sonnet`、`haiku` 也會對應到同樣的群組。
+
+## 保持 context 大小一致
+
+Context overflow 確實可能發生。`omfm` 會把請求原樣轉發給被路由到的模型；它不會壓縮（compact）、摘要或截斷 Agent 已累積的對話。如果一個長工作階段從 1M-token 模型開始，之後又被路由或 failover 到 128k/200k 模型，那麼當 prompt 超過較小模型的 context window 時，上游可能會拒絕請求。用戶端的上下文壓縮可以避免這個問題，但不要假設它一定會自動發生。
+
+選擇模型時，請讓每個可路由的模型池維持在同一個 context 長度級距。例如，如果長工作階段使用 `capable`，就只把約 1M-token 模型放進該群組；或者讓 `fast`/`balanced`/`capable` 都保持在 128k/200k 左右。`omfm model` 選擇器會顯示每個模型的 context 大小；未知值會顯示為 `—`，長工作階段應將其視為風險。
+
 ## 更多
 
 - 安裝、所有 CLI 旗標、daemon 控制、診斷：[INSTALLATION.zh-TW.md](./INSTALLATION.zh-TW.md)

@@ -56,6 +56,20 @@ export ANTHROPIC_AUTH_TOKEN=omfm-local
 export ANTHROPIC_API_KEY=
 ```
 
+For Claude Code, you can create a shell alias that routes Opus, Sonnet, and Haiku requests to `omfm` groups:
+
+```bash
+alias freeclaude='ANTHROPIC_BASE_URL=http://localhost:4567/anthropic ANTHROPIC_AUTH_TOKEN=omfm-local ANTHROPIC_API_KEY= CLAUDE_CODE_DISABLE_NONESSENTIAL_TRAFFIC=1 ANTHROPIC_DEFAULT_OPUS_MODEL=omfm/capable ANTHROPIC_DEFAULT_SONNET_MODEL=omfm/balanced ANTHROPIC_DEFAULT_HAIKU_MODEL=omfm/fast claude'
+```
+
+In `omfm`, `omfm/capable`, `omfm/balanced`, and `omfm/fast` route to the `capable`, `balanced`, and `fast` model groups, respectively. The Claude-style aliases `opus`, `sonnet`, and `haiku` use those same groups.
+
+## Keep context sizes consistent
+
+`omfm` forwards each request to the routed model. It does not compact, summarize, or truncate the agent's accumulated conversation, so context-window errors are still possible. If a long session starts on a 1M-token model and later routes or fails over to a 128k or 200k model, the smaller model can reject the request once the prompt exceeds its context window. Client-side compaction can help, but do not rely on it happening automatically.
+
+When selecting models, keep each model group in the same context tier. For example, use only ~1M-token models in `capable` if you run long sessions there, or keep all `fast`, `balanced`, and `capable` groups within the 128k-200k tier. The `omfm model` picker shows each model's context size; unknown context is shown as `—`, so treat it as risky for long sessions.
+
 ## More
 
 - Setup, all CLI flags, daemon control, diagnostics: [INSTALLATION.md](./INSTALLATION.md)
