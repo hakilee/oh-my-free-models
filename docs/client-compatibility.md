@@ -10,14 +10,16 @@ Use this route for OpenAI-compatible client behavior, Anthropic-compatible clien
 | OpenAI models | `GET /v1/models` | [src/server/create-server.ts](../src/server/create-server.ts), `src/providers` | `test/server.test.ts`, `test/openrouter.test.ts`, `test/nvidia.test.ts` |
 | OpenAI chat | `POST /v1/chat/completions` | [src/server/create-server.ts](../src/server/create-server.ts), [src/server/sse.ts](../src/server/sse.ts) | `test/server.test.ts` |
 | Anthropic messages | `POST /anthropic/v1/messages`, `POST /anthropic/messages` | [src/server/create-server.ts](../src/server/create-server.ts), [src/server/translate.ts](../src/server/translate.ts) | `test/server.test.ts`, `test/translate.test.ts` |
+| Anthropic token count | `POST /anthropic/v1/messages/count_tokens`, `POST /anthropic/messages/count_tokens` | [src/server/create-server.ts](../src/server/create-server.ts) | `test/server.test.ts` |
 
 ## Compatibility model
 
 - OpenAI-compatible clients should set `baseURL=http://localhost:4567/v1`.
 - Anthropic-compatible clients should set `ANTHROPIC_BASE_URL=http://localhost:4567/anthropic` and may use local placeholder auth because upstream auth comes from the provider key configured for the routed model.
 - Clients that support per-mode model settings can request `omfm/fast`, `omfm/balanced`, or `omfm/capable`; `haiku`, `sonnet`, and `opus` are accepted aliases for those same groups.
-- Anthropic requests first try a provider-supplied Anthropic-compatible endpoint when one exists, then fall back to minimal text-only Anthropic-to-OpenAI translation for supported cases.
-- Tool-use and multimodal Anthropic blocks are best-effort pass-through when a provider exposes an Anthropic-compatible surface; otherwise they remain unsupported or rejected.
+- Anthropic requests first try a provider-supplied Anthropic-compatible endpoint when one exists, then fall back to Anthropic/OpenAI translation for text and client tool-use blocks.
+- Anthropic token counting returns a local conservative estimate for client compatibility; it is not provider-tokenizer exact.
+- Multimodal Anthropic blocks are best-effort pass-through when a provider exposes an Anthropic-compatible surface; otherwise they remain unsupported or rejected.
 
 ## Required route for compatibility work
 

@@ -2,7 +2,7 @@ import { ConfigStore } from '../config/store.js';
 import { getLogPath } from '../config/paths.js';
 import { startDaemon } from '../daemon/daemon.js';
 import { startBackgroundLatencyProber } from '../latency/background-prober.js';
-import { createOmfmServer, listen } from '../server/create-server.js';
+import { createOmfmServer, formatServerLogEvent, listen } from '../server/create-server.js';
 
 export async function runStartCommand(options: { port?: number; daemon?: boolean; daemonChild?: boolean; store?: ConfigStore; startProber?: typeof startBackgroundLatencyProber } = {}): Promise<void> {
   const store = options.store ?? new ConfigStore();
@@ -17,7 +17,7 @@ export async function runStartCommand(options: { port?: number; daemon?: boolean
     return;
   }
 
-  const server = createOmfmServer({ store });
+  const server = createOmfmServer({ store, requestLogger: (event) => console.log(formatServerLogEvent(event, { color: process.stdout.isTTY })) });
   const actualPort = await listen(server, port);
   const prober = (options.startProber ?? startBackgroundLatencyProber)({
     store,

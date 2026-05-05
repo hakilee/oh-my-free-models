@@ -3,7 +3,7 @@ import os from 'node:os';
 import path from 'node:path';
 import { afterEach, describe, expect, it } from 'vitest';
 import { ConfigStore } from '../src/config/store.js';
-import { createOmfmServer, listen } from '../src/server/create-server.js';
+import { createOmfmServer, formatServerLogEvent, listen, ServerLogEvent } from '../src/server/create-server.js';
 import { FetchLike, OmfmModel } from '../src/types.js';
 
 const roots: string[] = [];
@@ -81,6 +81,34 @@ describe('local proxy server', () => {
     });
   });
 
+  it('emits request and response logs with routed model details', async () => {
+    const store = tempStore();
+    const logs: ServerLogEvent[] = [];
+    const server = createOmfmServer({
+      store,
+      env: { OPENROUTER_API_KEY: 'key' } as NodeJS.ProcessEnv,
+      requestLogger: (event) => logs.push(event),
+      fetchImpl: (async (_url, init) => {
+        const body = JSON.parse(String(init?.body));
+        return Response.json({ id: 'chatcmpl_1', model: body.model, choices: [{ message: { role: 'assistant', content: 'ok' }, finish_reason: 'stop' }] });
+      }) as FetchLike,
+    });
+    const port = await listen(server, 0);
+    try {
+      const res = await fetch(`http://127.0.0.1:${port}/v1/chat/completions`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ model: 'auto', messages: [{ role: 'user', content: 'hi' }] }) });
+      expect(res.status).toBe(200);
+      await res.text();
+      const responseLog = logs.find((event) => event.type === 'response');
+      expect(logs[0]).toMatchObject({ type: 'request', method: 'POST', path: '/v1/chat/completions' });
+      expect(responseLog).toMatchObject({ type: 'response', statusCode: 200, requestedModel: 'auto', modelId: 'fast:free', routeReason: 'lowest-latency', observedLatencyMs: 10 });
+      expect(formatServerLogEvent(responseLog!)).toContain('requested=auto model=fast:free route=lowest-latency cached=10ms');
+      expect(formatServerLogEvent(logs[0]!, { color: true })).toContain('\u001b[36mrequest\u001b[0m');
+      expect(formatServerLogEvent(responseLog!, { color: true })).toContain('\u001b[32mresponse\u001b[0m');
+    } finally {
+      await new Promise<void>((resolve) => server.close(() => resolve()));
+    }
+  });
+
   it('routes model-group aliases within that group', async () => {
     const store = tempStore();
     store.updateModelGroup('fast', ['slow:free']);
@@ -113,6 +141,33 @@ describe('local proxy server', () => {
       expect(seen[0].body.model).toBe('slow:free');
       expect(store.readUsage()['slow:free']).toMatchObject({ requests: 1, successes: 1, inputTokens: 1, outputTokens: 1, totalTokens: 2 });
     });
+  });
+
+  it('supports Anthropic message token counting without calling a provider', async () => {
+    const store = tempStore();
+    let called = false;
+    const server = createOmfmServer({
+      store,
+      env: {} as NodeJS.ProcessEnv,
+      fetchImpl: (async () => {
+        called = true;
+        return Response.json({});
+      }) as FetchLike,
+    });
+    const port = await listen(server, 0);
+    try {
+      const res = await fetch(`http://127.0.0.1:${port}/anthropic/v1/messages/count_tokens`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ model: 'omfm/balanced', messages: [{ role: 'user', content: 'hello world' }] }),
+      });
+      const body = await res.json() as any;
+      expect(res.status).toBe(200);
+      expect(body.input_tokens).toBeGreaterThan(0);
+      expect(called).toBe(false);
+    } finally {
+      await new Promise<void>((resolve) => server.close(() => resolve()));
+    }
   });
 
   it('routes selected NVIDIA models with their upstream model id', async () => {
@@ -419,6 +474,137 @@ describe('streaming behavior', () => {
       expect(text).toContain('data: {"choices"');
       expect(text).toContain('data: [DONE]');
     });
+  });
+
+  it('streams OpenAI chunks as Anthropic deltas before upstream closes', async () => {
+    const root = fs.mkdtempSync(path.join(os.tmpdir(), 'omfm-anthropic-stream-'));
+    roots.push(root);
+    const store = new ConfigStore(root);
+    store.updateSelectedModelIds(['nvidia/streamer']);
+    store.writeModelCache({
+      models: [{ id: 'nvidia/streamer', upstreamId: 'streamer', name: 'Streamer', provider: 'nvidia', source: 'nvidia' }],
+      fetchedAt: new Date().toISOString(),
+    });
+    let controller: ReadableStreamDefaultController<Uint8Array> | undefined;
+    const stream = new ReadableStream<Uint8Array>({
+      start(c) {
+        controller = c;
+      },
+    });
+    const server = createOmfmServer({
+      store,
+      env: { NVIDIA_API_KEY: 'key' } as NodeJS.ProcessEnv,
+      fetchImpl: (async () => new Response(stream, { headers: { 'content-type': 'text/event-stream' } })) as FetchLike,
+    });
+    const port = await listen(server, 0);
+    try {
+      const res = await fetch(`http://127.0.0.1:${port}/anthropic/v1/messages`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ stream: true, max_tokens: 10, messages: [{ role: 'user', content: 'hi' }] }) });
+      expect(res.status).toBe(200);
+      const reader = res.body!.getReader();
+      const decoder = new TextDecoder();
+      let text = '';
+      controller!.enqueue(new TextEncoder().encode('data: {"choices":[{"delta":{"content":"hello"}}]}\r\n\r\n'));
+      while (!text.includes('content_block_delta')) {
+        const chunk = await Promise.race([
+          reader.read(),
+          new Promise<ReadableStreamReadResult<Uint8Array>>((_, reject) => setTimeout(() => reject(new Error('timed out waiting for streamed delta')), 1_000)),
+        ]);
+        expect(chunk.done).toBe(false);
+        text += decoder.decode(chunk.value, { stream: true });
+      }
+      expect(text).toContain('hello');
+      controller!.close();
+      await reader.cancel();
+    } finally {
+      await new Promise<void>((resolve) => server.close(() => resolve()));
+    }
+  });
+
+  it('streams OpenAI tool-call chunks as Anthropic tool_use blocks', async () => {
+    const root = fs.mkdtempSync(path.join(os.tmpdir(), 'omfm-anthropic-tool-stream-'));
+    roots.push(root);
+    const store = new ConfigStore(root);
+    store.updateSelectedModelIds(['nvidia/streamer']);
+    store.writeModelCache({
+      models: [{ id: 'nvidia/streamer', upstreamId: 'streamer', name: 'Streamer', provider: 'nvidia', source: 'nvidia' }],
+      fetchedAt: new Date().toISOString(),
+    });
+    let seenBody: any;
+    const stream = new ReadableStream<Uint8Array>({
+      start(controller) {
+        controller.enqueue(new TextEncoder().encode('data: {"choices":[{"delta":{"tool_calls":[{"index":0,"id":"call_1","type":"function","function":{"name":"Bash","arguments":"{\\"command\\":"}}]}}]}\n\n'));
+        controller.enqueue(new TextEncoder().encode('data: {"choices":[{"delta":{"tool_calls":[{"index":0,"function":{"arguments":"\\"ls\\"}"}}]},"finish_reason":"tool_calls"}]}\n\n'));
+        controller.enqueue(new TextEncoder().encode('data: [DONE]\n\n'));
+        controller.close();
+      },
+    });
+    const server = createOmfmServer({
+      store,
+      env: { NVIDIA_API_KEY: 'key' } as NodeJS.ProcessEnv,
+      fetchImpl: (async (_url, init) => {
+        seenBody = JSON.parse(String(init?.body));
+        return new Response(stream, { headers: { 'content-type': 'text/event-stream' } });
+      }) as FetchLike,
+    });
+    const port = await listen(server, 0);
+    try {
+      const res = await fetch(`http://127.0.0.1:${port}/anthropic/v1/messages`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          stream: true,
+          max_tokens: 10,
+          tools: [{ name: 'Bash', description: 'Run shell', input_schema: { type: 'object', properties: { command: { type: 'string' } } } }],
+          messages: [{ role: 'user', content: 'list files' }],
+        }),
+      });
+      const text = await res.text();
+      expect(seenBody.tools[0]).toMatchObject({ type: 'function', function: { name: 'Bash' } });
+      expect(text).toContain('"type":"tool_use"');
+      expect(text).toContain('"name":"Bash"');
+      expect(text).toContain('"type":"input_json_delta"');
+      expect(text).toContain('"stop_reason":"tool_use"');
+    } finally {
+      await new Promise<void>((resolve) => server.close(() => resolve()));
+    }
+  });
+
+  it('closes a text block before starting a streamed tool_use block', async () => {
+    const root = fs.mkdtempSync(path.join(os.tmpdir(), 'omfm-anthropic-mixed-stream-'));
+    roots.push(root);
+    const store = new ConfigStore(root);
+    store.updateSelectedModelIds(['nvidia/streamer']);
+    store.writeModelCache({
+      models: [{ id: 'nvidia/streamer', upstreamId: 'streamer', name: 'Streamer', provider: 'nvidia', source: 'nvidia' }],
+      fetchedAt: new Date().toISOString(),
+    });
+    const stream = new ReadableStream<Uint8Array>({
+      start(controller) {
+        controller.enqueue(new TextEncoder().encode('data: {"choices":[{"delta":{"content":"checking"}}]}\n\n'));
+        controller.enqueue(new TextEncoder().encode('data: {"choices":[{"delta":{"tool_calls":[{"index":0,"id":"call_1","type":"function","function":{"name":"Bash","arguments":"{}"}}]},"finish_reason":"tool_calls"}]}\n\n'));
+        controller.close();
+      },
+    });
+    const server = createOmfmServer({
+      store,
+      env: { NVIDIA_API_KEY: 'key' } as NodeJS.ProcessEnv,
+      fetchImpl: (async () => new Response(stream, { headers: { 'content-type': 'text/event-stream' } })) as FetchLike,
+    });
+    const port = await listen(server, 0);
+    try {
+      const res = await fetch(`http://127.0.0.1:${port}/anthropic/v1/messages`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ stream: true, max_tokens: 10, tools: [{ name: 'Bash', input_schema: { type: 'object' } }], messages: [{ role: 'user', content: 'list files' }] }),
+      });
+      const text = await res.text();
+      const textStop = text.indexOf('"type":"content_block_stop","index":0');
+      const toolStart = text.indexOf('"type":"tool_use"');
+      expect(textStop).toBeGreaterThan(0);
+      expect(toolStart).toBeGreaterThan(textStop);
+    } finally {
+      await new Promise<void>((resolve) => server.close(() => resolve()));
+    }
   });
 
   it('health does not require an OpenRouter key', async () => {
