@@ -23,7 +23,7 @@ function sourceOf(model: OmfmModel): ModelSource {
 }
 
 function modelsForConfiguredProviders(models: OmfmModel[], apiKeys: ProviderApiKeys): OmfmModel[] {
-  return models.filter((model) => Boolean(apiKeys[sourceOf(model)]));
+  return uniqueModelsById(models.filter((model) => Boolean(apiKeys[sourceOf(model)])));
 }
 
 function compareByPopularity(a: OmfmModel, b: OmfmModel): number {
@@ -32,6 +32,14 @@ function compareByPopularity(a: OmfmModel, b: OmfmModel): number {
     || a.provider.localeCompare(b.provider)
     || a.name.localeCompare(b.name)
     || a.id.localeCompare(b.id);
+}
+
+export function uniqueModelsById(models: OmfmModel[]): OmfmModel[] {
+  const byId = new Map<string, OmfmModel>();
+  for (const model of models) {
+    if (!byId.has(model.id)) byId.set(model.id, model);
+  }
+  return [...byId.values()];
 }
 
 export async function listAvailableFreeModels(options: { apiKeys: ProviderApiKeys; fetchImpl?: FetchLike }): Promise<ProviderCatalogResult> {
@@ -55,7 +63,7 @@ export async function listAvailableFreeModels(options: { apiKeys: ProviderApiKey
   }
 
   return {
-    models: models.sort(compareByPopularity),
+    models: uniqueModelsById(models.sort(compareByPopularity)),
     errors,
   };
 }

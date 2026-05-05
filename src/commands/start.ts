@@ -19,7 +19,13 @@ export async function runStartCommand(options: { port?: number; daemon?: boolean
 
   const server = createOmfmServer({ store });
   const actualPort = await listen(server, port);
-  const prober = (options.startProber ?? startBackgroundLatencyProber)({ store });
+  const prober = (options.startProber ?? startBackgroundLatencyProber)({
+    store,
+    onError: (error) => {
+      const message = error instanceof Error ? error.message : String(error);
+      console.error(`omfm background latency probe failed: ${message}`);
+    },
+  });
   if (options.daemonChild) {
     store.writeDaemon({ pid: process.pid, port: actualPort, logPath: getLogPath(store.paths.root), startedAt: new Date().toISOString() });
   }

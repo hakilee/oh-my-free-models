@@ -1,13 +1,14 @@
 import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
-import { afterEach, describe, expect, it } from 'vitest';
-import { probeSelectedModels } from '../src/latency/background-prober.js';
+import { afterEach, describe, expect, it, vi } from 'vitest';
+import { probeSelectedModels, startBackgroundLatencyProber } from '../src/latency/background-prober.js';
 import { ConfigStore } from '../src/config/store.js';
 import { OmfmModel } from '../src/types.js';
 
 const roots: string[] = [];
 afterEach(() => roots.splice(0).forEach((root) => fs.rmSync(root, { recursive: true, force: true })));
+afterEach(() => vi.useRealTimers());
 
 function tempStore(models: OmfmModel[]): ConfigStore {
   const root = fs.mkdtempSync(path.join(os.tmpdir(), 'omfm-bg-probe-'));
@@ -51,5 +52,50 @@ describe('background latency prober', () => {
       },
     });
     expect(called).toBe(false);
+  });
+
+  it('aborts an in-flight scheduler run when stopped', async () => {
+    vi.useFakeTimers();
+    const store = tempStore([{ id: 'alpha/a:free', name: 'Alpha', provider: 'alpha', source: 'openrouter' }]);
+    let schedulerSignal: AbortSignal | undefined;
+    const prober = startBackgroundLatencyProber({
+      store,
+      env: { OPENROUTER_API_KEY: 'key' } as NodeJS.ProcessEnv,
+      initialDelayMs: 1,
+      intervalMs: 10_000,
+      runScheduler: async (options) => {
+        schedulerSignal = options.signal;
+        return new Promise((resolve) => {
+          options.signal?.addEventListener('abort', () => resolve('aborted'), { once: true });
+        });
+      },
+    });
+
+    await vi.advanceTimersByTimeAsync(1);
+    expect(schedulerSignal?.aborted).toBe(false);
+
+    prober.stop();
+    expect(schedulerSignal?.aborted).toBe(true);
+  });
+
+  it('reports background probe errors through the error hook', async () => {
+    vi.useFakeTimers();
+    const store = tempStore([{ id: 'alpha/a:free', name: 'Alpha', provider: 'alpha', source: 'openrouter' }]);
+    const errors: unknown[] = [];
+    const prober = startBackgroundLatencyProber({
+      store,
+      env: { OPENROUTER_API_KEY: 'key' } as NodeJS.ProcessEnv,
+      initialDelayMs: 1,
+      intervalMs: 10_000,
+      onError: (error) => errors.push(error),
+      runScheduler: async () => {
+        throw new Error('probe failed');
+      },
+    });
+
+    await vi.advanceTimersByTimeAsync(1);
+    expect(errors).toHaveLength(1);
+    expect(errors[0]).toBeInstanceOf(Error);
+    prober.stop();
   });
 });

@@ -17,11 +17,13 @@ export interface ProbeSelectedModelsOptions {
   env?: NodeJS.ProcessEnv;
   fetchImpl?: FetchLike;
   runScheduler?: typeof runProbeScheduler;
+  signal?: AbortSignal;
 }
 
 export interface StartBackgroundLatencyProberOptions extends ProbeSelectedModelsOptions {
   intervalMs?: number;
   initialDelayMs?: number;
+  onError?: (error: unknown) => void;
 }
 
 function sourceOf(model: OmfmModel): ModelSource {
@@ -29,11 +31,13 @@ function sourceOf(model: OmfmModel): ModelSource {
 }
 
 export async function probeSelectedModels(options: ProbeSelectedModelsOptions): Promise<void> {
+  if (options.signal?.aborted) return;
   const apiKeys = requireAnyProviderApiKey(options.env ?? process.env, options.store.paths.root);
   const config = options.store.readConfig();
   if (config.selectedModelIds.length === 0) return;
   const selectedIds = new Set(config.selectedModelIds);
   const catalog = await loadModelCatalog({ apiKeys, fetchImpl: options.fetchImpl, store: options.store });
+  if (options.signal?.aborted) return;
   const models = catalog.models.filter((model) => selectedIds.has(model.id));
   if (models.length === 0) return;
 
@@ -43,6 +47,7 @@ export async function probeSelectedModels(options: ProbeSelectedModelsOptions): 
     concurrency: 2,
     initialConcurrency: 2,
     intervalMs: 500,
+    signal: options.signal,
     probe: (model, signal) => {
       const apiKey = apiKeys[sourceOf(model)];
       if (!apiKey) return Promise.resolve({ modelId: model.id, status: 'failed', error: `${sourceOf(model)} API key is not configured` });
@@ -56,13 +61,20 @@ export function startBackgroundLatencyProber(options: StartBackgroundLatencyProb
   const initialDelayMs = options.initialDelayMs ?? DEFAULT_BACKGROUND_PROBE_INITIAL_DELAY_MS;
   let stopped = false;
   let timer: NodeJS.Timeout | undefined;
+  let activeController: AbortController | undefined;
 
   const schedule = (delayMs: number) => {
     if (stopped) return;
     timer = setTimeout(() => {
-      void probeSelectedModels(options)
-        .catch(() => undefined)
-        .finally(() => schedule(intervalMs));
+      activeController = new AbortController();
+      void probeSelectedModels({ ...options, signal: activeController.signal })
+        .catch((error) => {
+          if (!stopped && !activeController?.signal.aborted) options.onError?.(error);
+        })
+        .finally(() => {
+          activeController = undefined;
+          schedule(intervalMs);
+        });
     }, delayMs);
     timer.unref?.();
   };
@@ -73,6 +85,7 @@ export function startBackgroundLatencyProber(options: StartBackgroundLatencyProb
     stop: () => {
       stopped = true;
       if (timer) clearTimeout(timer);
+      activeController?.abort();
     },
   };
 }

@@ -11,7 +11,7 @@ Use this route for provider support, model-list changes, free-model filtering, a
 - Provider context length is enriched from the raw metadata catalog on the `model-metadata` branch, with the checked-in [data/model-metadata.json](../data/model-metadata.json) file as an offline/package fallback. The catalog is refreshed from public OpenRouter and NVIDIA metadata endpoints by `npm run metadata:update` and the daily `.github/workflows/update-model-metadata.yml` workflow.
 - The NVIDIA metadata refresh uses the public NGC endpoint catalog behind Build NVIDIA, per-endpoint details, and Build NVIDIA model cards as a final context-length fallback; rows without a reliable context length stay in the catalog and render as `-`.
 - NVIDIA models are exposed with local `nvidia/` IDs while preserving upstream model IDs for API calls. Runtime context length is read only from upstream model metadata aliases, the raw metadata catalog, or the packaged fallback; it does not fetch Build NVIDIA pages during `omfm model`.
-- Provider model catalogs are cached for 5 minutes and filtered to providers with currently configured API keys before reuse; stale catalogs are refreshed before normal use, with stale-cache fallback only when provider catalog fetches fail. Recent generic probe failures are hidden from `omfm model` briefly, then become listable again so transient provider/network failures can recover on a later probe.
+- Provider model catalogs are cached for 5 minutes, deduplicated by local model ID, and filtered to providers with currently configured API keys before reuse; stale catalogs are refreshed before normal use, with stale-cache fallback only when provider catalog fetches fail. Recent generic probe failures are hidden from `omfm model` briefly, then become listable again so transient provider/network failures can recover on a later probe.
 - Provider request helpers forward chat completions and Anthropic-compatible messages where supported.
 
 ## Required route for provider work
@@ -26,6 +26,7 @@ Use this route for provider support, model-list changes, free-model filtering, a
 4. Inspect tests:
    - `test/openrouter.test.ts`
    - `test/nvidia.test.ts`
+   - `test/catalog.test.ts`
    - provider-related coverage in `test/server.test.ts`, `test/model-command.test.ts`, and `test/probe.test.ts`
 5. Define verification before implementation: provider unit tests, CLI model-list behavior, server selected-model filtering, probe behavior, and secret handling.
 
