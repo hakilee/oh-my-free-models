@@ -19,10 +19,6 @@ describe('NVIDIA model provider', () => {
     expect(normalizeNvidiaModel({ id: 'nvidia/llama', metadata: { context_window: '128K tokens' } }).contextLength).toBe(128_000);
   });
 
-  it('falls back to checked-in metadata for context length', () => {
-    expect(normalizeNvidiaModel({ id: 'z-ai/glm-5.1' }).contextLength).toBe(131_072);
-  });
-
   it('parses context length from NVIDIA model card text', () => {
     expect(parseContextLengthFromText('| **Context Length** | Up to 1M tokens |')).toBe(1_000_000);
     expect(parseContextLengthFromText('Other Properties Related to Input: Context length up to 131,072 tokens')).toBe(131_072);

@@ -1,16 +1,17 @@
 {
   "name": "oh-my-free-models",
-  "version": "0.0.1",
+  "version": "0.0.2",
   "description": "Route your coding agent to the fastest free LLM in real time.",
+  "license": "MIT",
   "type": "module",
   "bin": {
     "omfm": "dist/cli.js"
   },
   "files": [
     "dist",
-    "data/model-metadata.json",
     "docs",
     "README.md",
+    "LICENSE.md",
     "oh-my-free-models-character.png"
   ],
   "scripts": {

@@ -98,3 +98,4 @@ Anthropic 入口还提供本地 `count_tokens` 估算；当请求 fallback 到 O
 - 安装、全部 CLI 参数、daemon 控制、诊断：[INSTALLATION.zh-CN.md](./INSTALLATION.zh-CN.md)
 - 路由内部机制：[docs/latency-routing.md](./latency-routing.md)
 - Provider 目录：[docs/provider-guide.md](./provider-guide.md)
+- 许可证：[MIT](../LICENSE.md)

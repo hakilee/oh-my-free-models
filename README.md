@@ -98,3 +98,4 @@ When selecting models, keep each model group in the same context tier. For examp
 - Setup, all CLI flags, daemon control, diagnostics: [INSTALLATION.md](./docs/INSTALLATION.md)
 - Routing internals: [docs/latency-routing.md](./docs/latency-routing.md)
 - Provider catalog: [docs/provider-guide.md](./docs/provider-guide.md)
+- License: [MIT](./LICENSE.md)

@@ -15,10 +15,10 @@ jobs:
       METADATA_BRANCH: model-metadata
     steps:
       - name: Check out repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
 
       - name: Set up Node.js
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v6
         with:
           node-version: 20
           cache: npm
@@ -59,7 +59,7 @@ jobs:
           Rejected: Auto-merging daily metadata commits into main | It creates noisy history for data-only churn.
           Confidence: medium
           Scope-risk: narrow
-          Directive: Keep this branch data-only; main should consume it through raw GitHub JSON with packaged metadata as fallback.
+          Directive: Keep this branch data-only; main consumes it through raw GitHub JSON, and runtime leaves context length empty when that fetch fails.
           Tested: npm run typecheck; npm test -- test/openrouter.test.ts test/nvidia.test.ts
           Not-tested: Private provider API-key smoke beyond public metadata surfaces.
           EOF

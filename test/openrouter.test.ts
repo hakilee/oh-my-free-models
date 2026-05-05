@@ -21,11 +21,6 @@ describe('OpenRouter model filtering', () => {
     expect(inferProvider('openai/gpt')).toBe('openai');
   });
 
-  it('falls back to checked-in metadata for context length', () => {
-    const model = normalizeOpenRouterModel({ id: 'google/gemma-4-31b-it:free', name: 'Gemma' });
-    expect(model.contextLength).toBe(262144);
-  });
-
   it('orders free models by OpenRouter programming popularity rank when available', async () => {
     const fetchImpl = (async (url: string | URL | Request) => {
       const href = String(url);

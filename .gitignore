@@ -29,3 +29,6 @@ yarn-error.log*
 # Workflow artifacts
 .omx/
 /superpowers/
+
+# Generated metadata (published to model-metadata branch, not main)
+data/model-metadata.json

@@ -53,7 +53,7 @@ function readLocalCatalog(): ProviderMetadataCatalog {
     const catalog = JSON.parse(readFileSync(catalogPath(), 'utf8')) as ProviderModelMetadataCatalog;
     return parseCatalog(catalog);
   } catch {
-    // Packaged metadata is an optimization. Provider listing must still work if it is absent.
+    // No bundled metadata; runtime relies on the model-metadata branch raw URL.
     return new Map();
   }
 }

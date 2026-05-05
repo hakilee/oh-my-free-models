@@ -98,3 +98,4 @@ Anthropic surface는 로컬 `count_tokens` 추정치도 제공하며, OpenAI 호
 - 설치, 모든 CLI 플래그, 데몬 제어, 진단은 [INSTALLATION.ko.md](./INSTALLATION.ko.md)를 참고하세요.
 - 라우팅 내부 동작은 [docs/latency-routing.md](./latency-routing.md)를 참고하세요.
 - Provider 카탈로그는 [docs/provider-guide.md](./provider-guide.md)를 참고하세요.
+- 라이선스: [MIT](../LICENSE.md)
