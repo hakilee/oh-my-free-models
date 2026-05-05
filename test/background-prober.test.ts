@@ -7,8 +7,10 @@ import { ConfigStore } from '../src/config/store.js';
 import { OmfmModel } from '../src/types.js';
 
 const roots: string[] = [];
-afterEach(() => roots.splice(0).forEach((root) => fs.rmSync(root, { recursive: true, force: true })));
-afterEach(() => vi.useRealTimers());
+afterEach(() => {
+  vi.useRealTimers();
+  roots.splice(0).forEach((root) => fs.rmSync(root, { recursive: true, force: true }));
+});
 
 function tempStore(models: OmfmModel[]): ConfigStore {
   const root = fs.mkdtempSync(path.join(os.tmpdir(), 'omfm-bg-probe-'));

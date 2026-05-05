@@ -20,7 +20,7 @@ export interface ProbeSelectedModelsOptions {
   signal?: AbortSignal;
 }
 
-export interface StartBackgroundLatencyProberOptions extends ProbeSelectedModelsOptions {
+export interface StartBackgroundLatencyProberOptions extends Omit<ProbeSelectedModelsOptions, 'signal'> {
   intervalMs?: number;
   initialDelayMs?: number;
   onError?: (error: unknown) => void;
@@ -57,8 +57,12 @@ export async function probeSelectedModels(options: ProbeSelectedModelsOptions): 
 }
 
 export function startBackgroundLatencyProber(options: StartBackgroundLatencyProberOptions): BackgroundLatencyProber {
-  const intervalMs = options.intervalMs ?? DEFAULT_BACKGROUND_PROBE_INTERVAL_MS;
-  const initialDelayMs = options.initialDelayMs ?? DEFAULT_BACKGROUND_PROBE_INITIAL_DELAY_MS;
+  const {
+    intervalMs = DEFAULT_BACKGROUND_PROBE_INTERVAL_MS,
+    initialDelayMs = DEFAULT_BACKGROUND_PROBE_INITIAL_DELAY_MS,
+    onError,
+    ...probeOptions
+  } = options;
   let stopped = false;
   let timer: NodeJS.Timeout | undefined;
   let activeController: AbortController | undefined;
@@ -66,13 +70,14 @@ export function startBackgroundLatencyProber(options: StartBackgroundLatencyProb
   const schedule = (delayMs: number) => {
     if (stopped) return;
     timer = setTimeout(() => {
-      activeController = new AbortController();
-      void probeSelectedModels({ ...options, signal: activeController.signal })
+      const controller = new AbortController();
+      activeController = controller;
+      void probeSelectedModels({ ...probeOptions, signal: controller.signal })
         .catch((error) => {
-          if (!stopped && !activeController?.signal.aborted) options.onError?.(error);
+          if (!stopped && !controller.signal.aborted) onError?.(error);
         })
         .finally(() => {
-          activeController = undefined;
+          if (activeController === controller) activeController = undefined;
           schedule(intervalMs);
         });
     }, delayMs);

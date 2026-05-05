@@ -34,7 +34,7 @@ function compareByPopularity(a: OmfmModel, b: OmfmModel): number {
     || a.id.localeCompare(b.id);
 }
 
-export function uniqueModelsById(models: OmfmModel[]): OmfmModel[] {
+function uniqueModelsById(models: OmfmModel[]): OmfmModel[] {
   const byId = new Map<string, OmfmModel>();
   for (const model of models) {
     if (!byId.has(model.id)) byId.set(model.id, model);
