@@ -1,7 +1,7 @@
 {
   "name": "oh-my-free-models",
   "version": "0.0.1",
-  "description": "Local free-model proxy for OpenAI and Anthropic-compatible coding agents across OpenRouter and NVIDIA.",
+  "description": "Route your coding agent to the fastest free LLM in real time.",
   "type": "module",
   "bin": {
     "omfm": "./dist/cli.js"
