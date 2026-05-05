@@ -1,7 +1,7 @@
 {
   "name": "oh-my-free-models",
   "version": "0.0.1",
-  "description": "Local OpenRouter free-model proxy for OpenAI and Anthropic-compatible coding agents.",
+  "description": "Local free-model proxy for OpenAI and Anthropic-compatible coding agents across OpenRouter and NVIDIA.",
   "type": "module",
   "bin": {
     "omfm": "./dist/cli.js"
@@ -11,7 +11,7 @@
     "data/model-metadata.json",
     "docs",
     "README.md",
-    "LICENSE"
+    "oh-my-free-models-character.png"
   ],
   "scripts": {
     "docs:check": "node scripts/check-docs.mjs",

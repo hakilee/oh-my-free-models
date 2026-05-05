@@ -2,6 +2,16 @@
 
 This directory is the maintained route map for `oh-my-free-models`. Start here when deciding which files, research notes, and checks apply to a task.
 
+## Repository at a glance
+
+| Question | Answer |
+| --- | --- |
+| What is this repo? | A TypeScript/Node local proxy named `omfm` for routing coding-agent requests to selected free OpenRouter and NVIDIA models. |
+| What does it expose? | OpenAI-compatible `/v1` and Anthropic-compatible `/anthropic` local surfaces on port `4567` by default. |
+| How is it used? | Install globally, set `OPENROUTER_API_KEY` or `NVIDIA_API_KEY`, run `omfm model` to select models, then run `omfm start`. |
+| Where is runtime behavior? | `src/cli.ts`, `src/commands/*`, `src/server/*`, `src/providers/*`, and `src/latency/*`. |
+| Where are user instructions? | Root `README.md` for overview and `docs/INSTALLATION.md` plus localized mirrors for setup and commands. |
+
 ## Routes
 
 | Task | Read | Research / decisions | Code anchors | Test anchors |

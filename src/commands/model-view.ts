@@ -34,11 +34,6 @@ export const FAILED_MODEL_HIDE_TTL_MS = 5 * 60 * 1000;
 
 export type RecommendationMark = 'strong' | 'good' | 'weak' | 'none' | 'pending';
 
-export function hasAnsiControl(value: string): boolean {
-  const withoutAnsi = stripAnsi(value);
-  return withoutAnsi !== value || /[\u0000-\u0008\u000b\u000c\u000e-\u001f\u007f]/.test(withoutAnsi);
-}
-
 export function stripAnsi(value: string): string {
   return value.replace(CONTROL_PATTERN, '');
 }

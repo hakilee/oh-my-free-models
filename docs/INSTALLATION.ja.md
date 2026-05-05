@@ -38,61 +38,60 @@ omfm model
 
 対話型ターミナルで実行するとモデル picker が開きます。各行に provider、モデル名、context サイズ、latency（キャッシュ値または計測値）、推奨度、probe ステータスが表示されます。並び順は現在の選択状態 → health・推奨 → キャッシュ済み latency → provider カタログ順位の優先度で、良い候補が上に来ます。
 
-Picker の表示記号:
+Picker 表示は次のとおりです。
 
-- `▶` — 現在のカーソル位置、ハイライト表示
-- `●` — 選択済み
-- `○` — 未選択
+| 表示 | 意味 |
+| --- | --- |
+| `▶` | 現在ハイライトされている行です。 |
+| `●` | 選択済みモデルです。 |
+| `○` | 未選択モデルです。 |
 
-Picker のキー操作:
+Picker のキー操作は次のとおりです。
 
-- `Tab`、`Left`/`Right`、`h`/`l`、または `[`/`]` — 上部タブ（`All`、`Fast`、`Balanced`、`Capable`）を切り替える
-- `Up`/`Down` または `j`/`k` — 移動
-- `Space` — 選択のトグル
-- `Enter` — 保存
-- `q` または `Esc` — キャンセル
+| キー | 操作 |
+| --- | --- |
+| `Tab`、`Left`/`Right`、`h`/`l`、または `[`/`]` | 上部タブ（`All`、`Fast`、`Balanced`、`Capable`）を切り替えます。 |
+| `Up`/`Down` または `j`/`k` | カーソルを移動します。 |
+| `Space` | 選択を切り替えます。 |
+| `Enter` | 保存します。 |
+| `q` または `Esc` | キャンセルします。 |
 
 `All` タブはグローバルなルーティング候補リストを管理します。グループタブではモデルを `fast`、`balanced`、`capable` に割り当てます。グループでモデルを選ぶと、そのモデルは `All` の候補にも自動的に残ります。保存された選択は表示順のまま維持されます。latency 情報がまだない場合、この順序が決定的な fallback として使われます。
 
 Latency probe は小規模な並列バッチで実行され、ペースは控えめに保たれます。`rate-limit` 応答は該当モデルの行にのみ反映され、残りの probe は継続されます。`quota`/支払いに関するエラーが返ると、まだ開始していない probe は中断されますが、キャッシュ済みの latency は上書きされません。
 
-stdout が TTY でない場合、`omfm model` は ANSI エスケープなしの静的なテーブルを出力し、probe は実行しません。非対話モードのオプション:
+stdout が TTY でない場合、`omfm model` は ANSI エスケープなしの静的なテーブルを出力し、probe は実行しません。必要に応じて次の非対話コマンドを使います。
 
-```bash
-omfm model --all
-omfm model --select google/gemini-2.0-flash-exp:free,meta-llama/llama-3.2-3b-instruct:free
-omfm model --group fast --select google/gemini-2.0-flash-exp:free
-omfm model --group capable --best
-omfm model --json
-omfm model --best
-omfm model --best --json
-```
+| コマンド | 用途 |
+| --- | --- |
+| `omfm model --all` | 選択可能な全モデルを表示します。 |
+| `omfm model --select google/gemini-2.0-flash-exp:free,meta-llama/llama-3.2-3b-instruct:free` | 明示的な選択モデルリストを保存します。 |
+| `omfm model --group fast --select google/gemini-2.0-flash-exp:free` | 特定グループのモデルリストを保存します。 |
+| `omfm model --group capable --best` | グループを probe して最良候補を表示します。 |
+| `omfm model --json` | モデル行を JSON で表示します。 |
+| `omfm model --best` | 選択済みモデルを probe して最良候補を表示します。 |
+| `omfm model --best --json` | 最良候補を JSON で表示します。 |
 
 `--group fast|balanced|capable` を使うと、coding-agent の mode ごとに別々のモデルプールを管理できます。`omfm/fast`、`omfm/balanced`、`omfm/capable` のリクエストはそのグループ内でルーティングされ、`haiku`、`sonnet`、`opus` も覚えやすい alias として扱われます。
 
 ## 4. ローカルプロキシの起動
 
-フォアグラウンドモード（`Ctrl+C` で終了）:
+プロキシの実行方法に合わせてコマンドを選びます。
 
-```bash
-omfm start
-```
-
-バックグラウンド daemon モード:
-
-```bash
-omfm start --daemon
-omfm status
-omfm stop
-```
+| コマンド | 用途 |
+| --- | --- |
+| `omfm start` | プロキシを foreground で起動します。`Ctrl+C` で停止します。 |
+| `omfm start --daemon` | プロキシを background daemon として起動します。 |
+| `omfm status` | daemon 状態を表示します。 |
+| `omfm stop` | background daemon を停止します。 |
 
 プロキシの実行中は、選択済みモデルの latency を約 5 分ごとに控えめなバックグラウンド probe バッチで更新します。Probe は picker と同じ cooldown ルールを使います。
 
-デフォルトのポートは `4567` です。`--port` で変更できます。
+デフォルトのポートは `4567` です。必要に応じて変更できます。
 
-```bash
-omfm start --port 4600
-```
+| コマンド | 用途 |
+| --- | --- |
+| `omfm start --port 4600` | プロキシを `4600` ポートで起動します。 |
 
 ## 5. クライアント接続
 
@@ -130,15 +129,13 @@ export ANTHROPIC_API_KEY=
 
 ## 6. 診断
 
-```bash
-omfm doctor
-omfm usage
-omfm usage --json
-```
+| コマンド | 用途 |
+| --- | --- |
+| `omfm doctor` | config パス、provider キーの取得元、選択済みモデル数、キャッシュ済みモデル数、daemon 状態を出力します。 |
+| `omfm usage` | モデルごとの request 数と利用可能な token 合計を出力します。 |
+| `omfm usage --json` | usage 観測値を JSON で出力します。 |
 
-`doctor` は config のパス、provider キーの取得元、選択済みモデル数、キャッシュ済みモデル数、daemon の状態を表示します。設定の変更は一切行いません。
-
-`usage` はモデルごとのリクエスト数、成功/失敗数、non-streaming provider レスポンスから観測できた token 合計を表示します。Streaming リクエストは件数に含まれますが、stream passthrough では通常 token 合計を取得できません。
+`doctor` は設定を変更しません。Streaming リクエストは `usage` の request 数に含まれますが、stream passthrough では通常 token 合計を取得できません。
 
 ## 7. ルーティングと latency のルール
 
@@ -154,13 +151,13 @@ omfm usage --json
 
 ## 8. 開発
 
-`omfm` 自体を開発するには:
+`omfm` 自体を開発するには、次のコマンドを使います。
 
-```bash
-git clone https://github.com/hakilee/oh-my-free-models
-cd oh-my-free-models
-npm install
-npm test
-npm run typecheck
-npm run build
-```
+| コマンド | 用途 |
+| --- | --- |
+| `git clone https://github.com/hakilee/oh-my-free-models` | リポジトリを clone します。 |
+| `cd oh-my-free-models` | プロジェクトディレクトリに移動します。 |
+| `npm install` | 依存関係をインストールします。 |
+| `npm test` | テスト全体を実行します。 |
+| `npm run typecheck` | TypeScript の型チェックを実行します。 |
+| `npm run build` | `dist` をビルドします。 |

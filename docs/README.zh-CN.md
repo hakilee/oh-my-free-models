@@ -14,7 +14,7 @@
 
 **Rate limit 在任务中途把你掐断。** OpenRouter 或 NVIDIA 上的免费模型会在毫无预兆的情况下返回 429。一次顺畅的运行会因为一个工具调用卡死，然后只能手动重试。
 
-**Latency 每个小时都在漂移。** 同一个免费模型早上跑得飞快，下午慢到没法用。没有"最快的模型"这种说法——只有"此刻最快的模型"。
+**Latency 每个小时都在漂移。** 同一个免费模型早上跑得飞快，下午慢到没法用。没有“最快的模型”这种说法，只有“此刻最快的模型”。
 
 **Quota 耗尽之后只能手动换 provider。** 一个 provider 的免费 quota 用完，你得自己去改 API key 和 baseURL。Agent 不会自己适应。
 
@@ -22,12 +22,14 @@
 
 ## omfm 是怎么解决的
 
-你给 `omfm` 一份你想用的免费模型 allowlist，它跑在 `http://localhost:4567` 上作为本地代理，在后台处理这些事情：
+你给 `omfm` 一份你想用的免费模型 allowlist，它跑在 `http://localhost:4567` 上作为本地代理，并在后台处理这些工作。
 
-- 从你的机器测量并缓存每个模型的 latency
-- 把未指定模型的请求路由到当前 latency 最低的可用候选
-- 刚触发 429 或 402 的模型冷却约 10 分钟，不再作为候选——Agent 不会一头撞进同一堵墙
-- 同时暴露 OpenAI 兼容（`/v1`）和 Anthropic 兼容（`/anthropic`）入口，drop-in 客户端无需改代码即可接入
+| 功能 | 处理方式 |
+| --- | --- |
+| Latency 跟踪 | 从你的机器测量并缓存每个模型的 latency。 |
+| 请求路由 | 把未指定模型的请求路由到当前 latency 最低的可用候选。 |
+| Cooldown | 刚触发 429 或 402 的模型冷却约 10 分钟，不再作为候选。 |
+| 客户端兼容 | 同时暴露 OpenAI 兼容的 `/v1` 和 Anthropic 兼容的 `/anthropic` 入口。 |
 
 Agent 只管盯着 `localhost`。provider 切换、rate-limit 重试、选出当前最快的模型，这些都在它下面静悄悄地发生。
 
@@ -39,6 +41,20 @@ mkdir -p ~/.oh-my-free-models && echo 'OPENROUTER_API_KEY=sk-or-...' > ~/.oh-my-
 omfm model        # 在 picker 里选几个免费模型
 omfm start        # 启动 http://localhost:4567
 ```
+
+## 常用命令
+
+| 命令 | 用途 |
+| --- | --- |
+| `omfm model` | 打开 picker 并保存选中的免费模型。 |
+| `omfm model --all` | 不打开 picker，直接列出全部可选模型。 |
+| `omfm model --group fast --best` | Probe fast 组并输出当前最佳候选。 |
+| `omfm start` | 在前台运行本地代理。 |
+| `omfm start --daemon` | 在后台以 daemon 方式运行本地代理。 |
+| `omfm status` | 查看 daemon 和 config 状态。 |
+| `omfm stop` | 停止后台 daemon。 |
+| `omfm doctor` | 检查 config 路径、密钥、模型缓存和 daemon 状态。 |
+| `omfm usage` | 查看每个模型的请求数和 token 观测值。 |
 
 ## 在你的 Agent 中使用
 
@@ -68,7 +84,7 @@ alias freeclaude='ANTHROPIC_BASE_URL=http://localhost:4567/anthropic ANTHROPIC_A
 
 上下文溢出确实可能发生。`omfm` 会把请求原样转发给被路由到的模型；它不会压缩、总结或截断 Agent 已累积的对话。如果一个长会话一开始使用 1M token 的模型，之后又被路由或故障切换到 128k/200k 的模型，那么一旦提示内容超过较小模型的上下文窗口，上游就可能拒绝请求。客户端侧的压缩/总结可以避免这个问题，但不要假设它一定会自动发生。
 
-选择模型时，请让每个可路由的模型池保持在同一档上下文容量。例如，如果长会话使用 `capable`，就只把约 1M token 的模型放进该组；或者让 `fast`/`balanced`/`capable` 都维持在 128k/200k 左右。`omfm model` 选择器会显示每个模型的上下文大小；未知值显示为 `—`，长会话应将其视为风险。
+选择模型时，请让每个可路由的模型池保持在同一档上下文容量。例如，如果长会话使用 `capable`，就只把约 1M token 的模型放进该组；或者让 `fast`/`balanced`/`capable` 都维持在 128k/200k 左右。`omfm model` 选择器会显示每个模型的上下文大小；未知值会显示为未知标记，长会话应将其视为风险。
 
 ## 更多
 

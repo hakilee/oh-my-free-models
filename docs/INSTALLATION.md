@@ -36,63 +36,62 @@ Only the providers whose keys are present are used.
 omfm model
 ```
 
-In an interactive terminal, this opens a model picker. Each row shows provider, model, context size, cached or measured latency, recommendation, and probe status. Rows are sorted by current selection, health/recommendation, cached latency, and provider catalog rank — the best-known choices appear first.
+In an interactive terminal, this opens a model picker. Each row shows provider, model, context size, cached or measured latency, recommendation, and probe status. Rows are sorted by current selection, health/recommendation, cached latency, and provider catalog rank, so the best-known choices appear first.
 
 Picker indicators:
 
-- `▶` — current row, highlighted
-- `●` — selected
-- `○` — unselected
+| Indicator | Meaning |
+| --- | --- |
+| `▶` | Current highlighted row. |
+| `●` | Selected model. |
+| `○` | Unselected model. |
 
 Picker keys:
 
-- `Tab`, `Left`/`Right`, `h`/`l`, or `[`/`]` — switch the top tabs (`All`, `Fast`, `Balanced`, `Capable`)
-- `Up`/`Down` or `j`/`k` — move
-- `Space` — toggle selection
-- `Enter` — save
-- `q` or `Esc` — cancel
+| Key | Action |
+| --- | --- |
+| `Tab`, `Left`/`Right`, `h`/`l`, or `[`/`]` | Switch the top tabs (`All`, `Fast`, `Balanced`, `Capable`). |
+| `Up`/`Down` or `j`/`k` | Move the cursor. |
+| `Space` | Toggle selection. |
+| `Enter` | Save. |
+| `q` or `Esc` | Cancel. |
 
 The `All` tab controls the global eligible model list. Group tabs assign models to `fast`, `balanced`, and `capable`; selecting a model in a group also keeps it eligible in `All`. Saved selections keep the displayed order. That order becomes the deterministic routing fallback when no latency is known yet.
 
 Latency probes run in small parallel batches with conservative pacing. A `rate-limit` response marks that model and lets the remaining rows continue probing. A `quota`/payment response stops any probes not yet started for that run, but doesn't overwrite cached latency.
 
-When stdout is not a TTY, `omfm model` prints a static ANSI-free table and skips probing. Non-interactive forms:
+When stdout is not a TTY, `omfm model` prints a static ANSI-free table and skips probing. Use these non-interactive forms as needed.
 
-```bash
-omfm model --all
-omfm model --select google/gemini-2.0-flash-exp:free,meta-llama/llama-3.2-3b-instruct:free
-omfm model --group fast --select google/gemini-2.0-flash-exp:free
-omfm model --group capable --best
-omfm model --json
-omfm model --best
-omfm model --best --json
-```
+| Command | Use |
+| --- | --- |
+| `omfm model --all` | Print every eligible model. |
+| `omfm model --select google/gemini-2.0-flash-exp:free,meta-llama/llama-3.2-3b-instruct:free` | Save an explicit selected-model list. |
+| `omfm model --group fast --select google/gemini-2.0-flash-exp:free` | Save a model list for one group. |
+| `omfm model --group capable --best` | Probe a group and print its best candidate. |
+| `omfm model --json` | Print model rows as JSON. |
+| `omfm model --best` | Probe selected models and print the best candidate. |
+| `omfm model --best --json` | Print the best candidate as JSON. |
 
 Use `--group fast|balanced|capable` to maintain separate model pools for coding-agent modes. Requests for `omfm/fast`, `omfm/balanced`, or `omfm/capable` route inside that group; `haiku`, `sonnet`, and `opus` are accepted as friendly aliases.
 
 ## 4. Start the local proxy
 
-Foreground mode (exits on `Ctrl+C`):
+Use the command that matches how you want the proxy to run.
 
-```bash
-omfm start
-```
-
-Background daemon:
-
-```bash
-omfm start --daemon
-omfm status
-omfm stop
-```
+| Command | Use |
+| --- | --- |
+| `omfm start` | Start the proxy in the foreground. Stop it with `Ctrl+C`. |
+| `omfm start --daemon` | Start the proxy as a background daemon. |
+| `omfm status` | Show daemon status. |
+| `omfm stop` | Stop the background daemon. |
 
 While the proxy is running, it refreshes selected-model latency in conservative background probe batches about every 5 minutes. Probes reuse the same cooldown rules as the picker.
 
-Default port is `4567`. Override with `--port`:
+Default port is `4567`. Override it when needed.
 
-```bash
-omfm start --port 4600
-```
+| Command | Use |
+| --- | --- |
+| `omfm start --port 4600` | Start the proxy on port `4600`. |
 
 ## 5. Connect clients
 
@@ -130,15 +129,13 @@ Required endpoints in `0.0.1`:
 
 ## 6. Diagnostics
 
-```bash
-omfm doctor
-omfm usage
-omfm usage --json
-```
+| Command | Use |
+| --- | --- |
+| `omfm doctor` | Report config paths, provider key sources, selected models, cache size, and daemon state. |
+| `omfm usage` | Show per-model request counts and token totals when available. |
+| `omfm usage --json` | Print usage observations as JSON. |
 
-`doctor` reports config paths, provider key sources, selected model count, cached model count, and daemon state. It doesn't modify any settings.
-
-`usage` reports per-model request counts, success/failure counts, and token totals observed in non-streaming provider responses. Streaming requests are counted, but token totals are usually unavailable from the stream passthrough.
+`doctor` does not modify settings. Streaming requests are counted by `usage`, but token totals are usually unavailable from the stream passthrough.
 
 ## 7. Routing and latency rules
 
@@ -154,13 +151,13 @@ omfm usage --json
 
 ## 8. Development
 
-To work on `omfm` itself:
+Use these commands to work on `omfm` itself.
 
-```bash
-git clone https://github.com/hakilee/oh-my-free-models
-cd oh-my-free-models
-npm install
-npm test
-npm run typecheck
-npm run build
-```
+| Command | Use |
+| --- | --- |
+| `git clone https://github.com/hakilee/oh-my-free-models` | Clone the repository. |
+| `cd oh-my-free-models` | Enter the project directory. |
+| `npm install` | Install dependencies. |
+| `npm test` | Run the test suite. |
+| `npm run typecheck` | Run TypeScript type checking. |
+| `npm run build` | Build `dist`. |

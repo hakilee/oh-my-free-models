@@ -16,12 +16,12 @@ Node.js 20 이상이 필요합니다.
 
 ## 2. Provider API 키 설정
 
-`omfm` 은 provider 키를 다음 순서로 읽습니다:
+`omfm` 은 provider 키를 다음 순서로 읽습니다.
 
 1. 프로세스/전역 환경의 `OPENROUTER_API_KEY` / `NVIDIA_API_KEY`
 2. `~/.oh-my-free-models/.env`
 
-`~/.oh-my-free-models/.env` 예시:
+`~/.oh-my-free-models/.env` 예시는 아래와 같습니다.
 
 ```bash
 OPENROUTER_API_KEY=sk-or-...
@@ -38,61 +38,60 @@ omfm model
 
 대화형 터미널에서 실행하면 모델 picker가 열립니다. provider, 모델, context 크기, latency (캐시 또는 측정값), 추천 여부, probe 상태를 보여줍니다. 정렬 기준은 현재 선택 여부 → health/추천 → 캐시된 latency → provider 카탈로그 순위 순이라, 좋은 후보가 위로 올라옵니다.
 
-Picker 표시:
+Picker 표시는 다음과 같습니다.
 
-- `▶` — 현재 커서 위치, 강조
-- `●` — 선택됨
-- `○` — 미선택
+| 표시 | 의미 |
+| --- | --- |
+| `▶` | 현재 커서가 있는 강조 행입니다. |
+| `●` | 선택된 모델입니다. |
+| `○` | 선택되지 않은 모델입니다. |
 
-Picker 키 매핑:
+Picker 키 매핑은 다음과 같습니다.
 
-- `Tab`, `Left`/`Right`, `h`/`l`, 또는 `[`/`]` — 상단 탭 (`All`, `Fast`, `Balanced`, `Capable`) 전환
-- `Up`/`Down` 또는 `j`/`k` — 이동
-- `Space` — 선택 토글
-- `Enter` — 저장
-- `q` 또는 `Esc` — 취소
+| 키 | 동작 |
+| --- | --- |
+| `Tab`, `Left`/`Right`, `h`/`l`, 또는 `[`/`]` | 상단 탭(`All`, `Fast`, `Balanced`, `Capable`)을 전환합니다. |
+| `Up`/`Down` 또는 `j`/`k` | 커서를 이동합니다. |
+| `Space` | 선택을 토글합니다. |
+| `Enter` | 저장합니다. |
+| `q` 또는 `Esc` | 취소합니다. |
 
 `All` 탭은 전체 라우팅 후보 목록을 관리합니다. 그룹 탭은 모델을 `fast`, `balanced`, `capable` 에 배정하며, 그룹에서 모델을 선택하면 `All` 에도 자동으로 포함되어 라우팅 후보로 유지됩니다. 저장된 선택은 표시 순서 그대로 유지됩니다. latency 정보가 아직 없으면 이 순서가 결정적 fallback으로 쓰입니다.
 
 Latency probe는 소규모 병렬로 실행되며, 속도를 보수적으로 조절합니다. `rate-limit` 응답은 해당 모델 행에만 표시되고 나머지 probe는 계속 진행됩니다. `quota`/결제 응답이 오면 아직 시작하지 않은 probe는 중단되지만, 캐시된 latency는 덮어쓰지 않습니다.
 
-stdout이 TTY가 아니면 `omfm model` 은 ANSI 없는 정적 표를 출력하고 probe는 실행하지 않습니다. 비대화형 옵션:
+stdout이 TTY가 아니면 `omfm model` 은 ANSI 없는 정적 표를 출력하고 probe는 실행하지 않습니다. 비대화형 실행은 아래 명령어를 사용합니다.
 
-```bash
-omfm model --all
-omfm model --select google/gemini-2.0-flash-exp:free,meta-llama/llama-3.2-3b-instruct:free
-omfm model --group fast --select google/gemini-2.0-flash-exp:free
-omfm model --group capable --best
-omfm model --json
-omfm model --best
-omfm model --best --json
-```
+| 명령어 | 용도 |
+| --- | --- |
+| `omfm model --all` | 선택 가능한 모든 모델을 출력합니다. |
+| `omfm model --select google/gemini-2.0-flash-exp:free,meta-llama/llama-3.2-3b-instruct:free` | 선택 모델 목록을 명시적으로 저장합니다. |
+| `omfm model --group fast --select google/gemini-2.0-flash-exp:free` | 특정 그룹의 모델 목록을 저장합니다. |
+| `omfm model --group capable --best` | 그룹을 probe하고 가장 좋은 후보를 출력합니다. |
+| `omfm model --json` | 모델 목록을 JSON으로 출력합니다. |
+| `omfm model --best` | 선택된 모델을 probe하고 가장 좋은 후보를 출력합니다. |
+| `omfm model --best --json` | 가장 좋은 후보를 JSON으로 출력합니다. |
 
 `--group fast|balanced|capable` 로 코딩 에이전트 mode별 모델 풀을 따로 관리할 수 있습니다. `omfm/fast`, `omfm/balanced`, `omfm/capable` 요청은 해당 그룹 안에서 라우팅되며, `haiku`, `sonnet`, `opus` 도 친숙한 alias로 인식합니다.
 
 ## 4. 로컬 프록시 실행
 
-Foreground 모드 (`Ctrl+C` 로 종료):
+프록시 실행 방식에 맞는 명령어를 사용합니다.
 
-```bash
-omfm start
-```
-
-데몬 모드:
-
-```bash
-omfm start --daemon
-omfm status
-omfm stop
-```
+| 명령어 | 용도 |
+| --- | --- |
+| `omfm start` | 프록시를 foreground로 실행합니다. `Ctrl+C` 로 종료합니다. |
+| `omfm start --daemon` | 프록시를 background daemon으로 실행합니다. |
+| `omfm status` | daemon 상태를 확인합니다. |
+| `omfm stop` | background daemon을 중지합니다. |
 
 프록시가 실행 중이면 선택된 모델의 latency를 약 5분마다 보수적인 백그라운드 probe 배치로 갱신합니다. Probe는 picker와 같은 cooldown 규칙을 사용합니다.
 
-기본 포트는 `4567` 입니다. `--port` 로 바꿀 수 있습니다:
+기본 포트는 `4567` 입니다. 필요하면 포트를 바꿀 수 있습니다.
 
-```bash
-omfm start --port 4600
-```
+| 명령어 | 용도 |
+| --- | --- |
+| `omfm start --port 4600` | 프록시를 `4600` 포트에서 실행합니다. |
 
 ## 5. 클라이언트 연결
 
@@ -100,20 +99,20 @@ Mode별 모델을 지정할 수 있는 클라이언트에서는 `omfm/fast`, `om
 
 ### OpenAI 호환 클라이언트
 
-OpenCode, Hermes Agent, OpenClaw 등 OpenAI 호환 클라이언트에서 아래와 같이 설정합니다:
+OpenCode, Hermes Agent, OpenClaw 등 OpenAI 호환 클라이언트에서는 아래 값을 사용합니다.
 
 ```text
 baseURL=http://localhost:4567/v1
 ```
 
-`0.0.1` 에서 필요한 엔드포인트:
+`0.0.1` 에서 필요한 엔드포인트는 다음과 같습니다.
 
 - `GET /v1/models`
 - `POST /v1/chat/completions`
 
 ### Anthropic 호환 클라이언트 (Claude Code)
 
-아래 환경변수를 설정합니다:
+아래 환경변수를 설정합니다.
 
 ```bash
 export ANTHROPIC_BASE_URL=http://localhost:4567/anthropic
@@ -121,7 +120,7 @@ export ANTHROPIC_AUTH_TOKEN=omfm-local
 export ANTHROPIC_API_KEY=
 ```
 
-`0.0.1` 에서 필요한 엔드포인트:
+`0.0.1` 에서 필요한 엔드포인트는 다음과 같습니다.
 
 - `POST /anthropic/v1/messages`
 - `POST /anthropic/messages` (alias)
@@ -130,15 +129,13 @@ export ANTHROPIC_API_KEY=
 
 ## 6. 진단
 
-```bash
-omfm doctor
-omfm usage
-omfm usage --json
-```
+| 명령어 | 용도 |
+| --- | --- |
+| `omfm doctor` | config 경로, provider 키 출처, 선택 모델 수, 캐시 모델 수, daemon 상태를 출력합니다. |
+| `omfm usage` | 모델별 요청 수와 가능한 token 합계를 출력합니다. |
+| `omfm usage --json` | usage 관측치를 JSON으로 출력합니다. |
 
-`doctor` 는 config 경로, provider 키 출처, 선택된 모델 수, 캐시된 모델 수, 데몬 상태를 출력합니다. 클라이언트 설정은 건드리지 않습니다.
-
-`usage` 는 모델별 요청 수, 성공/실패 수, 그리고 non-streaming provider 응답에서 관측된 토큰 합계를 출력합니다. Streaming 요청은 요청 수에는 포함되지만, stream passthrough에서는 보통 토큰 합계를 알 수 없습니다.
+`doctor` 는 설정을 변경하지 않습니다. Streaming 요청은 `usage` 요청 수에 포함되지만, stream passthrough에서는 보통 token 합계를 얻을 수 없습니다.
 
 ## 7. 라우팅 및 latency 규칙
 
@@ -154,13 +151,13 @@ omfm usage --json
 
 ## 8. 개발
 
-`omfm` 자체를 작업하려면:
+`omfm` 자체를 작업할 때는 아래 명령어를 사용합니다.
 
-```bash
-git clone https://github.com/hakilee/oh-my-free-models
-cd oh-my-free-models
-npm install
-npm test
-npm run typecheck
-npm run build
-```
+| 명령어 | 용도 |
+| --- | --- |
+| `git clone https://github.com/hakilee/oh-my-free-models` | 저장소를 clone합니다. |
+| `cd oh-my-free-models` | 프로젝트 디렉터리로 이동합니다. |
+| `npm install` | 의존성을 설치합니다. |
+| `npm test` | 테스트 전체를 실행합니다. |
+| `npm run typecheck` | TypeScript 타입 검사를 실행합니다. |
+| `npm run build` | `dist` 를 빌드합니다. |

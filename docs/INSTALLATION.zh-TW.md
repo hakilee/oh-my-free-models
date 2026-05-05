@@ -38,61 +38,60 @@ omfm model
 
 在互動式終端機中執行時，會開啟模型 picker。每一列顯示 provider、模型名稱、context 大小、latency（快取或實測值）、推薦狀態、probe 狀態。排序依據是：目前已選取 → 健康狀態／推薦 → 快取的 latency → provider 目錄排名，最佳候選會排在最上方。
 
-Picker 指示符：
+Picker 指示如下。
 
-- `▶` — 目前游標位置，反白顯示
-- `●` — 已選取
-- `○` — 未選取
+| 指示 | 意義 |
+| --- | --- |
+| `▶` | 目前高亮列。 |
+| `●` | 已選模型。 |
+| `○` | 未選模型。 |
 
-Picker 按鍵：
+Picker 按鍵如下。
 
-- `Tab`、`Left`/`Right`、`h`/`l` 或 `[`/`]` — 切換頂部標籤（`All`、`Fast`、`Balanced`、`Capable`）
-- `Up`／`Down` 或 `j`／`k` — 移動游標
-- `Space` — 切換選取狀態
-- `Enter` — 儲存
-- `q` 或 `Esc` — 取消
+| 按鍵 | 動作 |
+| --- | --- |
+| `Tab`、`Left`/`Right`、`h`/`l` 或 `[`/`]` | 切換上方分頁（`All`、`Fast`、`Balanced`、`Capable`）。 |
+| `Up`/`Down` 或 `j`/`k` | 移動游標。 |
+| `Space` | 切換選取狀態。 |
+| `Enter` | 儲存。 |
+| `q` 或 `Esc` | 取消。 |
 
 `All` 標籤管理全域可路由模型清單。群組標籤會把模型分配到 `fast`、`balanced`、`capable`；在群組中選取模型也會自動讓它保留在 `All` 的候選清單中。儲存後的選取清單保留顯示時的順序。當 latency 資料尚未建立時，這個順序會作為確定性的 fallback 路由依據。
 
 Latency probe 以小規模並行批次執行，速率設定保守。`rate-limit` 回應只標記該模型這一列，其餘列繼續 probe。`quota`／付款相關回應會停止尚未開始的 probe，但不會覆蓋已快取的 latency。
 
-當 stdout 不是 TTY 時，`omfm model` 會輸出不含 ANSI 色碼的靜態表格，並略過 probing。非互動式用法：
+當 stdout 不是 TTY 時，`omfm model` 會輸出不含 ANSI 色碼的靜態表格，並略過 probing。可依需求使用以下非互動命令。
 
-```bash
-omfm model --all
-omfm model --select google/gemini-2.0-flash-exp:free,meta-llama/llama-3.2-3b-instruct:free
-omfm model --group fast --select google/gemini-2.0-flash-exp:free
-omfm model --group capable --best
-omfm model --json
-omfm model --best
-omfm model --best --json
-```
+| 命令 | 用途 |
+| --- | --- |
+| `omfm model --all` | 列出所有可選模型。 |
+| `omfm model --select google/gemini-2.0-flash-exp:free,meta-llama/llama-3.2-3b-instruct:free` | 儲存明確的已選模型清單。 |
+| `omfm model --group fast --select google/gemini-2.0-flash-exp:free` | 儲存某個群組的模型清單。 |
+| `omfm model --group capable --best` | Probe 某個群組並輸出最佳候選。 |
+| `omfm model --json` | 以 JSON 輸出模型列。 |
+| `omfm model --best` | Probe 已選模型並輸出最佳候選。 |
+| `omfm model --best --json` | 以 JSON 輸出最佳候選。 |
 
 使用 `--group fast|balanced|capable` 可以替不同的 coding-agent mode 維護獨立模型池。請求 `omfm/fast`、`omfm/balanced` 或 `omfm/capable` 時只會在對應群組內路由；`haiku`、`sonnet`、`opus` 也會被視為易記的 alias。
 
 ## 4. 啟動本機代理
 
-前景模式（`Ctrl+C` 結束）：
+依代理執行方式選擇命令。
 
-```bash
-omfm start
-```
-
-背景 daemon：
-
-```bash
-omfm start --daemon
-omfm status
-omfm stop
-```
+| 命令 | 用途 |
+| --- | --- |
+| `omfm start` | 在前景啟動代理。用 `Ctrl+C` 停止。 |
+| `omfm start --daemon` | 以背景 daemon 啟動代理。 |
+| `omfm status` | 查看 daemon 狀態。 |
+| `omfm stop` | 停止背景 daemon。 |
 
 代理執行期間，會約每 5 分鐘以保守的背景 probe 批次刷新已選模型的 latency。Probe 使用與 picker 相同的 cooldown 規則。
 
-預設 port 為 `4567`，可用 `--port` 覆蓋：
+預設 port 為 `4567`，需要時可以改用其他 port。
 
-```bash
-omfm start --port 4600
-```
+| 命令 | 用途 |
+| --- | --- |
+| `omfm start --port 4600` | 在 `4600` port 啟動代理。 |
 
 ## 5. 連接客戶端
 
@@ -130,15 +129,13 @@ export ANTHROPIC_API_KEY=
 
 ## 6. 診斷
 
-```bash
-omfm doctor
-omfm usage
-omfm usage --json
-```
+| 命令 | 用途 |
+| --- | --- |
+| `omfm doctor` | 輸出 config 路徑、provider 金鑰來源、已選模型數、快取模型數和 daemon 狀態。 |
+| `omfm usage` | 輸出每個模型的請求數與可用 token 合計。 |
+| `omfm usage --json` | 以 JSON 輸出 usage 觀測值。 |
 
-`doctor` 會顯示設定檔路徑、provider 金鑰來源、已選取的模型數量、已快取的模型數量，以及 daemon 狀態。不會修改任何設定。
-
-`usage` 會輸出每個模型的請求次數、成功/失敗次數，以及從非 streaming provider 回應中觀察到的 token 總量。Streaming 請求會計入請求次數，但 stream passthrough 通常無法取得 token 總量。
+`doctor` 不會修改設定。Streaming 請求會計入 `usage` 的請求數，但 stream passthrough 通常無法取得 token 合計。
 
 ## 7. 路由與 latency 規則
 
@@ -154,13 +151,13 @@ omfm usage --json
 
 ## 8. 開發
 
-若要對 `omfm` 本身進行開發：
+若要對 `omfm` 本身進行開發，請使用這些命令。
 
-```bash
-git clone https://github.com/hakilee/oh-my-free-models
-cd oh-my-free-models
-npm install
-npm test
-npm run typecheck
-npm run build
-```
+| 命令 | 用途 |
+| --- | --- |
+| `git clone https://github.com/hakilee/oh-my-free-models` | Clone repository。 |
+| `cd oh-my-free-models` | 進入專案目錄。 |
+| `npm install` | 安裝依賴。 |
+| `npm test` | 執行完整測試。 |
+| `npm run typecheck` | 執行 TypeScript 型別檢查。 |
+| `npm run build` | 建置 `dist`。 |

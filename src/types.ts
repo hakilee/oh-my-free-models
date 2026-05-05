@@ -1,5 +1,3 @@
-export type JsonObject = Record<string, unknown>;
-
 export type ModelSource = 'openrouter' | 'nvidia';
 
 export type ModelGroupName = 'fast' | 'balanced' | 'capable';
@@ -62,10 +60,5 @@ export interface DaemonState {
 }
 
 export type FetchLike = typeof fetch;
-
-export interface ProviderRequestOptions {
-  apiKey: string;
-  fetchImpl?: FetchLike;
-}
 
 export type ProviderApiKeys = Partial<Record<ModelSource, string>>;

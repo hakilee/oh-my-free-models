@@ -22,12 +22,14 @@ Free tier 코딩 에이전트는 스펙 시트에서는 멀쩡해 보이지만, 
 
 ## omfm이 하는 일
 
-쓸 free 모델의 allowlist를 `omfm` 에 넘기면 `http://localhost:4567` 에서 로컬 프록시로 동작합니다. 내부에서 처리하는 것들:
+쓸 free 모델의 allowlist를 `omfm` 에 넘기면 `http://localhost:4567` 에서 로컬 프록시로 동작합니다. 내부에서는 다음 일을 처리합니다.
 
-- 모델별 latency를 내 머신 기준으로 측정·캐시
-- 일반 (특정 모델 미지정) 요청을 가장 빠른 살아있는 후보로 라우팅
-- 방금 429/402 를 받은 모델은 약 10분간 후보에서 제외합니다(에이전트가 같은 벽에 두 번 부딪히지 않도록).
-- OpenAI 호환 (`/v1`) 과 Anthropic 호환 (`/anthropic`) surface를 동시에 노출합니다(drop-in 클라이언트는 코드 변경 없이 동작).
+| 기능 | 처리 방식 |
+| --- | --- |
+| Latency 추적 | 모델별 latency를 내 머신 기준으로 측정하고 캐시합니다. |
+| 요청 라우팅 | 모델을 직접 지정하지 않은 요청을 가장 빠른 살아있는 후보로 보냅니다. |
+| Cooldown | 방금 429/402 를 받은 모델은 약 10분 동안 후보에서 제외합니다. |
+| 클라이언트 호환성 | OpenAI 호환 `/v1` 과 Anthropic 호환 `/anthropic` surface를 동시에 노출합니다. |
 
 에이전트는 `localhost` 만 바라봅니다. provider 전환, rate-limit 우회, "지금 빠른 모델" 선택은 그 아래에서 조용히 일어납니다.
 
@@ -40,15 +42,29 @@ omfm model        # picker에서 free 모델 몇 개 선택
 omfm start        # http://localhost:4567 서빙
 ```
 
+## 자주 쓰는 명령어
+
+| 명령어 | 용도 |
+| --- | --- |
+| `omfm model` | Picker를 열고 사용할 free 모델을 저장합니다. |
+| `omfm model --all` | Picker 없이 선택 가능한 모든 모델을 출력합니다. |
+| `omfm model --group fast --best` | fast 그룹을 probe하고 현재 가장 좋은 후보를 출력합니다. |
+| `omfm start` | 로컬 프록시를 foreground로 실행합니다. |
+| `omfm start --daemon` | 로컬 프록시를 background daemon으로 실행합니다. |
+| `omfm status` | daemon과 config 상태를 확인합니다. |
+| `omfm stop` | background daemon을 중지합니다. |
+| `omfm doctor` | config 경로, 키, 모델 캐시, daemon 상태를 점검합니다. |
+| `omfm usage` | 모델별 요청 수와 token 관측치를 확인합니다. |
+
 ## 에이전트에서 쓰기
 
-OpenAI 호환 클라이언트 (OpenCode, Hermes Agent, OpenClaw 등):
+OpenAI 호환 클라이언트(OpenCode, Hermes Agent, OpenClaw 등)에서는 다음 값을 사용합니다.
 
 ```text
 baseURL=http://localhost:4567/v1
 ```
 
-Anthropic 호환 클라이언트 (Claude Code 등):
+Anthropic 호환 클라이언트(Claude Code 등)에서는 다음 환경변수를 설정합니다.
 
 ```bash
 export ANTHROPIC_BASE_URL=http://localhost:4567/anthropic
@@ -56,7 +72,7 @@ export ANTHROPIC_AUTH_TOKEN=omfm-local
 export ANTHROPIC_API_KEY=
 ```
 
-Claude Code의 모델 별칭도 `omfm` 그룹을 가리키도록 설정할 수 있습니다:
+Claude Code의 모델 별칭도 `omfm` 그룹을 가리키도록 설정할 수 있습니다.
 
 ```bash
 alias freeclaude='ANTHROPIC_BASE_URL=http://localhost:4567/anthropic ANTHROPIC_AUTH_TOKEN=omfm-local ANTHROPIC_API_KEY= CLAUDE_CODE_DISABLE_NONESSENTIAL_TRAFFIC=1 ANTHROPIC_DEFAULT_OPUS_MODEL=omfm/capable ANTHROPIC_DEFAULT_SONNET_MODEL=omfm/balanced ANTHROPIC_DEFAULT_HAIKU_MODEL=omfm/fast claude'
@@ -68,10 +84,10 @@ alias freeclaude='ANTHROPIC_BASE_URL=http://localhost:4567/anthropic ANTHROPIC_A
 
 `omfm`은 요청을 라우팅된 모델로 그대로 전달하며, 에이전트 세션에 누적된 대화를 자동으로 압축(compact)하거나 요약하거나 잘라내지 않습니다. 따라서 컨텍스트 오버플로우는 실제로 발생할 수 있습니다. 긴 세션이 1M 토큰 컨텍스트 모델에서 시작된 뒤 128k/200k 모델로 라우팅되거나 페일오버되면, 프롬프트가 작은 모델의 컨텍스트 윈도를 넘는 순간 업스트림 제공자가 요청을 거절할 수 있습니다. 클라이언트 측 compact 기능으로 피할 수는 있지만, 항상 자동으로 처리된다고 가정하지 마세요.
 
-모델을 고를 때는 라우팅 후보 풀마다 컨텍스트 크기 티어를 맞춰두세요. 예를 들어 긴 세션을 `capable`에서 쓴다면 그 그룹에는 약 1M 토큰 컨텍스트 모델만 넣거나, `fast`/`balanced`/`capable` 전체를 128k/200k 근처로 맞추세요. `omfm model` 선택 화면은 각 모델의 컨텍스트 크기를 보여줍니다. 컨텍스트 크기를 알 수 없는 모델은 `—`로 표시되므로, 긴 세션에서는 위험한 후보로 보세요.
+모델을 고를 때는 라우팅 후보 풀마다 컨텍스트 크기 티어를 맞춰두세요. 예를 들어 긴 세션을 `capable`에서 쓴다면 그 그룹에는 약 1M 토큰 컨텍스트 모델만 넣거나, `fast`/`balanced`/`capable` 전체를 128k/200k 근처로 맞추세요. `omfm model` 선택 화면은 각 모델의 컨텍스트 크기를 보여줍니다. 컨텍스트 크기를 알 수 없는 모델은 값 없음으로 표시되므로, 긴 세션에서는 위험한 후보로 보세요.
 
 ## 더 알아보기
 
-- 설치, 모든 CLI 플래그, 데몬 제어, 진단: [INSTALLATION.ko.md](./INSTALLATION.ko.md)
-- 라우팅 내부 동작: [docs/latency-routing.md](./latency-routing.md)
-- Provider 카탈로그: [docs/provider-guide.md](./provider-guide.md)
+- 설치, 모든 CLI 플래그, 데몬 제어, 진단은 [INSTALLATION.ko.md](./INSTALLATION.ko.md)를 참고하세요.
+- 라우팅 내부 동작은 [docs/latency-routing.md](./latency-routing.md)를 참고하세요.
+- Provider 카탈로그는 [docs/provider-guide.md](./provider-guide.md)를 참고하세요.

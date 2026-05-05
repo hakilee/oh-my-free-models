@@ -22,12 +22,14 @@ Free tier のコーディング agent はスペック上は魅力的に見えて
 
 ## omfm がやってくれること
 
-使いたい free モデルの allowlist を `omfm` に渡すと、`http://localhost:4567` でローカルプロキシとして動き始め、内部でこれらを処理します。
+使いたい free モデルの allowlist を `omfm` に渡すと、`http://localhost:4567` でローカルプロキシとして動き始め、内部で次の仕事を処理します。
 
-- 自分のマシンからモデルごとの latency を計測してキャッシュ
-- モデル未指定のリクエストを、今一番 latency が低い生きている候補へルーティング
-- 直前に 429 や 402 を受けたモデルは約 10 分間候補から外す — agent が同じ壁に二度ぶつからないように
-- OpenAI 互換（`/v1`）と Anthropic 互換（`/anthropic`）の両エンドポイントを同時に公開 — drop-in クライアントはコード変更なしで接続可能
+| 機能 | 処理内容 |
+| --- | --- |
+| Latency 追跡 | 自分のマシンからモデルごとの latency を計測してキャッシュします。 |
+| リクエストルーティング | モデル未指定のリクエストを、今一番 latency が低い生きている候補へルーティングします。 |
+| Cooldown | 直前に 429 や 402 を受けたモデルは約 10 分間候補から外します。 |
+| クライアント互換性 | OpenAI 互換の `/v1` と Anthropic 互換の `/anthropic` エンドポイントを同時に公開します。 |
 
 agent は `localhost` だけを見ていれば OK。provider の切り替え、rate-limit 後のリトライ、「今速いモデル」の選択はその下で静かに行われます。
 
@@ -39,6 +41,20 @@ mkdir -p ~/.oh-my-free-models && echo 'OPENROUTER_API_KEY=sk-or-...' > ~/.oh-my-
 omfm model        # picker で free モデルをいくつか選ぶ
 omfm start        # http://localhost:4567 を起動
 ```
+
+## よく使うコマンド
+
+| コマンド | 用途 |
+| --- | --- |
+| `omfm model` | picker を開き、選択した free モデルを保存します。 |
+| `omfm model --all` | picker を開かずに、選択可能な全モデルを表示します。 |
+| `omfm model --group fast --best` | fast グループを probe し、現在の最良候補を表示します。 |
+| `omfm start` | ローカルプロキシを foreground で起動します。 |
+| `omfm start --daemon` | ローカルプロキシを background daemon として起動します。 |
+| `omfm status` | daemon と config の状態を表示します。 |
+| `omfm stop` | background daemon を停止します。 |
+| `omfm doctor` | config パス、キー、モデルキャッシュ、daemon 状態を確認します。 |
+| `omfm usage` | モデルごとの request 数と token 観測値を表示します。 |
 
 ## あなたの agent から使う
 
@@ -68,7 +84,7 @@ alias freeclaude='ANTHROPIC_BASE_URL=http://localhost:4567/anthropic ANTHROPIC_A
 
 コンテキストオーバーフローは実際に起こり得ます。`omfm` はリクエストをルーティング先のモデルへそのまま転送します。agent が蓄積した会話をコンパクト化、要約、切り詰めることはありません。長時間のセッションが 1M-token モデルで始まり、その後 128k/200k モデルへルーティングまたは failover されると、prompt が小さいモデルの context window を超えた時点で上流プロバイダーがリクエストを拒否する可能性があります。クライアント側のコンパクションで避けられる場合はありますが、常に自動で起きるとは考えないでください。
 
-モデルを選ぶときは、ルーティング対象のプールごとに、コンテキスト長の階層を揃えてください。たとえば長時間のセッションを `capable` で使うなら、そのグループには ~1M-token モデルだけを入れるか、`fast`/`balanced`/`capable` 全体を 128k/200k 前後に揃えます。`omfm model` picker は各モデルの context サイズを表示します。値が不明な場合は `—` と表示されます。長時間のセッションではリスクとして扱ってください。
+モデルを選ぶときは、ルーティング対象のプールごとに、コンテキスト長の階層を揃えてください。たとえば長時間のセッションを `capable` で使うなら、そのグループには ~1M-token モデルだけを入れるか、`fast`/`balanced`/`capable` 全体を 128k/200k 前後に揃えます。`omfm model` picker は各モデルの context サイズを表示します。値が不明な場合は不明マーカーとして表示されます。長時間のセッションではリスクとして扱ってください。
 
 ## もっと知る
 

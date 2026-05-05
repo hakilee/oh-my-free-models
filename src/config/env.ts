@@ -44,14 +44,6 @@ export function resolveProviderApiKeys(env: NodeJS.ProcessEnv = process.env, roo
   };
 }
 
-export function requireOpenRouterApiKey(env: NodeJS.ProcessEnv = process.env, root = getConfigRoot(env)): string {
-  const key = resolveOpenRouterApiKey(env, root);
-  if (!key) {
-    throw new Error(`OPENROUTER_API_KEY is required. Set it globally or add OPENROUTER_API_KEY=... to ${getEnvPath(root)}.`);
-  }
-  return key;
-}
-
 export function requireAnyProviderApiKey(env: NodeJS.ProcessEnv = process.env, root = getConfigRoot(env)): ProviderApiKeys {
   const keys = resolveProviderApiKeys(env, root);
   if (!keys.openrouter && !keys.nvidia) {

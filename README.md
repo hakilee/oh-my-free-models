@@ -14,7 +14,7 @@ Free-tier coding agents look great on paper and break in practice. Four things g
 
 **Rate limits stop your work mid-task.** Free models on OpenRouter or NVIDIA hit 429 unpredictably. A clean run becomes a stalled tool call, and you have to retry by hand.
 
-**Latency drifts hour to hour.** The same free model is fast in the morning and unusable by afternoon. No model is "the fast one" — only "the fast one *right now*."
+**Latency drifts hour to hour.** The same free model is fast in the morning and unusable by afternoon. No model is "the fast one"; only "the fast one *right now*" matters.
 
 **Quotas force manual provider swapping.** When one provider's free quota runs out, you're manually swapping keys and base URLs. Your agent doesn't adapt.
 
@@ -22,12 +22,14 @@ Free-tier coding agents look great on paper and break in practice. Four things g
 
 ## What omfm does about it
 
-You give `omfm` an allowlist of free models you actually want to use. It runs as a local proxy on `http://localhost:4567` and:
+You give `omfm` an allowlist of free models you actually want to use. It runs as a local proxy on `http://localhost:4567` and handles these jobs internally.
 
-- measures and caches per-model latency from your machine
-- routes generic requests to the lowest-latency live candidate
-- cools off models that just hit 429 or 402 for ~10 minutes, so the agent doesn't retry into the same wall
-- exposes one OpenAI-compatible (`/v1`) and one Anthropic-compatible (`/anthropic`) surface, so any drop-in client works without code changes
+| Job | What happens |
+| --- | --- |
+| Latency tracking | Measures and caches per-model latency from your machine. |
+| Request routing | Routes generic requests to the lowest-latency live candidate. |
+| Cooldown | Keeps models that just hit 429 or 402 out of rotation for about 10 minutes. |
+| Client compatibility | Exposes OpenAI-compatible `/v1` and Anthropic-compatible `/anthropic` surfaces. |
 
 Your agent points at `localhost`. Provider switching, rate-limit retries, and picking the currently-fast model all happen below it.
 
@@ -39,6 +41,20 @@ mkdir -p ~/.oh-my-free-models && echo 'OPENROUTER_API_KEY=sk-or-...' > ~/.oh-my-
 omfm model        # pick a few free models in the picker
 omfm start        # serves http://localhost:4567
 ```
+
+## Common commands
+
+| Command | Use |
+| --- | --- |
+| `omfm model` | Open the picker and save selected free models. |
+| `omfm model --all` | Print all eligible models without opening the picker. |
+| `omfm model --group fast --best` | Probe the fast group and print the best current candidate. |
+| `omfm start` | Run the local proxy in the foreground. |
+| `omfm start --daemon` | Run the local proxy in the background. |
+| `omfm status` | Show daemon and config status. |
+| `omfm stop` | Stop the background daemon. |
+| `omfm doctor` | Inspect config paths, keys, model cache, and daemon state. |
+| `omfm usage` | Show per-model request and token observations. |
 
 ## Use it from your agent
 
@@ -68,7 +84,7 @@ In `omfm`, `omfm/capable`, `omfm/balanced`, and `omfm/fast` route to the `capabl
 
 `omfm` forwards each request to the routed model. It does not compact, summarize, or truncate the agent's accumulated conversation, so context-window errors are still possible. If a long session starts on a 1M-token model and later routes or fails over to a 128k or 200k model, the smaller model can reject the request once the prompt exceeds its context window. Client-side compaction can help, but do not rely on it happening automatically.
 
-When selecting models, keep each model group in the same context tier. For example, use only ~1M-token models in `capable` if you run long sessions there, or keep all `fast`, `balanced`, and `capable` groups within the 128k-200k tier. The `omfm model` picker shows each model's context size; unknown context is shown as `—`, so treat it as risky for long sessions.
+When selecting models, keep each model group in the same context tier. For example, use only ~1M-token models in `capable` if you run long sessions there, or keep all `fast`, `balanced`, and `capable` groups within the 128k-200k tier. The `omfm model` picker shows each model's context size; unknown context is shown as an unknown marker, so treat it as risky for long sessions.
 
 ## More
 
