@@ -13,6 +13,10 @@ export function getLatencyPath(root = getConfigRoot()): string {
   return path.join(root, 'latency.json');
 }
 
+export function getUsagePath(root = getConfigRoot()): string {
+  return path.join(root, 'usage.json');
+}
+
 export function getModelCachePath(root = getConfigRoot()): string {
   return path.join(root, 'models-cache.json');
 }

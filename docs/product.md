@@ -4,20 +4,21 @@
 
 ## What it provides
 
-- A CLI named `omfm` for selecting models, starting or stopping the local proxy, and checking daemon status.
+- A CLI named `omfm` for selecting models, starting or stopping the local proxy, checking daemon status, and viewing model usage counters.
 - OpenAI-compatible routes under `http://localhost:4567/v1`:
   - `GET /v1/models`
   - `POST /v1/chat/completions`
 - Anthropic-compatible routes under `http://localhost:4567/anthropic`:
   - `POST /anthropic/v1/messages`
   - `POST /anthropic/messages`
-- Local selection state and latency observations under `~/.oh-my-free-models`.
+- Local selection state, latency observations, and usage counters under `~/.oh-my-free-models`.
 
 ## Product invariants
 
 - The package does not auto-start a daemon during install; users explicitly run `omfm start` or `omfm start --daemon`.
 - Only models selected by `omfm model` are eligible for request routing.
 - If a request names a selected model, the proxy honors it; provider upstream IDs also match selected local models when available. Generic or unknown model names route by lowest known latency or deterministic selected order.
+- While the proxy is running, selected models are periodically probed in conservative background batches to refresh local latency observations.
 - Model groups `fast`, `balanced`, and `capable` let clients address separate pools with `omfm/fast`, `omfm/balanced`, `omfm/capable`, or the `haiku`/`sonnet`/`opus` aliases. Non-empty groups route only within that group; empty groups fall back to the full selected list.
 - Supported provider adapters must preserve free/text eligibility and selected-model allowlisting.
 - Unsupported modalities and non-chat endpoints remain out of scope for version `0.0.1` unless an implementation task changes the product contract.

@@ -1,8 +1,8 @@
 import fs from 'node:fs';
 import path from 'node:path';
 import { DEFAULT_MODEL_GROUPS, normalizeModelGroups } from '../model-groups.js';
-import { DaemonState, LatencyObservation, ModelCache, ModelGroupName, OmfmConfig } from '../types.js';
-import { getConfigPath, getConfigRoot, getDaemonPath, getLatencyPath, getModelCachePath } from './paths.js';
+import { DaemonState, LatencyObservation, ModelCache, ModelGroupName, OmfmConfig, UsageObservation } from '../types.js';
+import { getConfigPath, getConfigRoot, getDaemonPath, getLatencyPath, getModelCachePath, getUsagePath } from './paths.js';
 
 const DEFAULT_PORT = 4567;
 export const MODEL_CACHE_TTL_MS = 5 * 60 * 1000;
@@ -12,6 +12,7 @@ export interface StorePaths {
   root: string;
   configPath: string;
   latencyPath: string;
+  usagePath: string;
   modelCachePath: string;
   daemonPath: string;
 }
@@ -21,6 +22,7 @@ export function createStorePaths(root = getConfigRoot()): StorePaths {
     root,
     configPath: getConfigPath(root),
     latencyPath: getLatencyPath(root),
+    usagePath: getUsagePath(root),
     modelCachePath: getModelCachePath(root),
     daemonPath: getDaemonPath(root),
   };
@@ -133,6 +135,35 @@ export class ConfigStore {
       ...(cooldown ? { cooldownUntil: cooldown } : {}),
     };
     this.writeLatency(all);
+  }
+
+  readUsage(): Record<string, UsageObservation> {
+    return readJson<Record<string, UsageObservation>>(this.paths.usagePath, {});
+  }
+
+  writeUsage(usage: Record<string, UsageObservation>): void {
+    writeJson(this.paths.usagePath, usage);
+  }
+
+  recordUsage(modelId: string, details: { success: boolean; inputTokens?: number; outputTokens?: number; totalTokens?: number; httpStatus?: number; status?: string }): void {
+    const all = this.readUsage();
+    const current = all[modelId];
+    const inputTokens = Math.max(0, Math.floor(details.inputTokens ?? 0));
+    const outputTokens = Math.max(0, Math.floor(details.outputTokens ?? 0));
+    const totalTokens = Math.max(0, Math.floor(details.totalTokens ?? inputTokens + outputTokens));
+    all[modelId] = {
+      modelId,
+      requests: (current?.requests ?? 0) + 1,
+      successes: (current?.successes ?? 0) + (details.success ? 1 : 0),
+      failures: (current?.failures ?? 0) + (details.success ? 0 : 1),
+      inputTokens: (current?.inputTokens ?? 0) + inputTokens,
+      outputTokens: (current?.outputTokens ?? 0) + outputTokens,
+      totalTokens: (current?.totalTokens ?? 0) + totalTokens,
+      updatedAt: new Date().toISOString(),
+      lastStatus: details.status ?? (details.success ? 'ok' : 'failed'),
+      ...(details.httpStatus !== undefined ? { lastHttpStatus: details.httpStatus } : {}),
+    };
+    this.writeUsage(all);
   }
 
   readModelCache(): ModelCache | undefined {

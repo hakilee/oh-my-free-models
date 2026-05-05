@@ -50,6 +50,22 @@ describe('config/env', () => {
     expect(again.readLatency().c).toMatchObject({ failures: 1, lastStatus: 'rate-limited', lastHttpStatus: 429 });
   });
 
+  it('persists model usage counters and token totals', () => {
+    const store = new ConfigStore(tempRoot());
+    store.recordUsage('a', { success: true, inputTokens: 3, outputTokens: 4, httpStatus: 200 });
+    store.recordUsage('a', { success: false, httpStatus: 429, status: 'rate-limited' });
+    expect(new ConfigStore(store.paths.root).readUsage().a).toMatchObject({
+      requests: 2,
+      successes: 1,
+      failures: 1,
+      inputTokens: 3,
+      outputTokens: 4,
+      totalTokens: 7,
+      lastStatus: 'rate-limited',
+      lastHttpStatus: 429,
+    });
+  });
+
   it('defaults missing model groups for existing configs', () => {
     const store = new ConfigStore(tempRoot());
     fs.mkdirSync(store.paths.root, { recursive: true });

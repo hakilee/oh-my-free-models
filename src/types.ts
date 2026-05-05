@@ -30,6 +30,19 @@ export interface LatencyObservation {
   cooldownUntil?: string;
 }
 
+export interface UsageObservation {
+  modelId: string;
+  requests: number;
+  successes: number;
+  failures: number;
+  inputTokens: number;
+  outputTokens: number;
+  totalTokens: number;
+  updatedAt: string;
+  lastStatus?: string;
+  lastHttpStatus?: number;
+}
+
 export interface OmfmConfig {
   port: number;
   selectedModelIds: string[];

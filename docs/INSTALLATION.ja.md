@@ -86,6 +86,8 @@ omfm status
 omfm stop
 ```
 
+プロキシの実行中は、選択済みモデルの latency を約 5 分ごとに控えめなバックグラウンド probe バッチで更新します。Probe は picker と同じ cooldown ルールを使います。
+
 デフォルトのポートは `4567` です。`--port` で変更できます。
 
 ```bash
@@ -130,9 +132,13 @@ export ANTHROPIC_API_KEY=
 
 ```bash
 omfm doctor
+omfm usage
+omfm usage --json
 ```
 
 `doctor` は config のパス、provider キーの取得元、選択済みモデル数、キャッシュ済みモデル数、daemon の状態を表示します。設定の変更は一切行いません。
+
+`usage` はモデルごとのリクエスト数、成功/失敗数、non-streaming provider レスポンスから観測できた token 合計を表示します。Streaming リクエストは件数に含まれますが、stream passthrough では通常 token 合計を取得できません。
 
 ## 7. ルーティングと latency のルール
 
@@ -142,6 +148,7 @@ omfm doctor
 - グループモデル名（`omfm/fast`、`omfm/balanced`、`omfm/capable`、および `haiku`/`sonnet`/`opus`）は、そのグループに選択済みモデルがある場合、そのグループ内だけでルーティングします。空のグループは選択済みモデル全体へ fallback します。
 - rate-limit（HTTP 429）または quota（HTTP 402）が発生したモデルは約 10 分間候補から外れます。選択済みモデルがすべて cooling 状態のときは、latency 順の全リストへ fallback してリクエストを継続します。
 - リクエストが成功すると、ローカルの latency キャッシュを更新します。
+- `omfm start` はプロキシの実行中にも、選択済みモデルの latency をバックグラウンドで更新します。
 - latency 情報がない場合は、picker で保存した選択順へ fallback します。picker と `omfm model --all` は推奨順でそのまま保存します。
 - `0.0.1` では hosted latency サービスは使用しません。
 

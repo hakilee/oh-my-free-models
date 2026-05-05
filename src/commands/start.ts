@@ -1,9 +1,10 @@
 import { ConfigStore } from '../config/store.js';
 import { getLogPath } from '../config/paths.js';
 import { startDaemon } from '../daemon/daemon.js';
+import { startBackgroundLatencyProber } from '../latency/background-prober.js';
 import { createOmfmServer, listen } from '../server/create-server.js';
 
-export async function runStartCommand(options: { port?: number; daemon?: boolean; daemonChild?: boolean; store?: ConfigStore } = {}): Promise<void> {
+export async function runStartCommand(options: { port?: number; daemon?: boolean; daemonChild?: boolean; store?: ConfigStore; startProber?: typeof startBackgroundLatencyProber } = {}): Promise<void> {
   const store = options.store ?? new ConfigStore();
   store.ensureRoot();
   const config = store.readConfig();
@@ -18,12 +19,14 @@ export async function runStartCommand(options: { port?: number; daemon?: boolean
 
   const server = createOmfmServer({ store });
   const actualPort = await listen(server, port);
+  const prober = (options.startProber ?? startBackgroundLatencyProber)({ store });
   if (options.daemonChild) {
     store.writeDaemon({ pid: process.pid, port: actualPort, logPath: getLogPath(store.paths.root), startedAt: new Date().toISOString() });
   }
   console.log(`omfm listening on http://localhost:${actualPort}`);
 
   const shutdown = () => {
+    prober.stop();
     server.close(() => process.exit(0));
   };
   process.once('SIGINT', shutdown);

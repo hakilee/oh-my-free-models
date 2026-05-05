@@ -4,8 +4,8 @@ Update this page when `src/latency/*` behavior, latency tests, or model-selectio
 
 ## Current local anchors
 
-- Implementation: `src/latency/router.ts`, `src/latency/probe.ts`, `src/latency/probe-scheduler.ts`
-- Tests: `test/router.test.ts`, `test/probe.test.ts`, `test/probe-scheduler.test.ts`
+- Implementation: `src/latency/router.ts`, `src/latency/probe.ts`, `src/latency/probe-scheduler.ts`, `src/latency/background-prober.ts`
+- Tests: `test/router.test.ts`, `test/probe.test.ts`, `test/probe-scheduler.test.ts`, `test/background-prober.test.ts`
 - Routing semantics live in `docs/latency-routing.md`; this page records research-grade detail only.
 
 ## Findings beyond the route page
@@ -15,11 +15,12 @@ Update this page when `src/latency/*` behavior, latency tests, or model-selectio
 - No hosted latency service is used in version `0.0.1`.
 - The model picker writes selected IDs in recommendation display order. That keeps the no-latency routing fallback aligned with the same local evidence users saw when saving selections.
 - Server routing resolves a selected model by local ID or provider upstream ID before latency ordering, which matters for provider-prefixed NVIDIA IDs.
+- Server startup now schedules a low-concurrency selected-model probe loop after a short delay and repeats it roughly every 5 minutes while the process is alive. This keeps latency cache fresh without introducing a hosted latency service.
 - User-configured model groups are deliberately explicit instead of inferred from provider metadata. This avoids stale or subjective automatic "capability" classification while still matching coding-agent mode patterns through `fast`/`balanced`/`capable` and `haiku`/`sonnet`/`opus` aliases.
 
 ## Pending research
 
-- Define the acceptable refresh cadence for stale latency measurements.
+- Tune the background probe cadence if provider quota pressure or freshness needs change.
 - Tune the 10-minute rate-limit cooldown as real provider quotas are observed.
 - Record future cache and pacing tradeoffs in `research/decisions/`.
 

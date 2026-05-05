@@ -99,19 +99,39 @@ function noUsableModelResponse(res: ServerResponse, lastError: unknown): void {
   json(res, 400, { error: { message: 'No selected free models are usable with the configured provider API keys.', details: String(lastError ?? '') } });
 }
 
+function numberValue(value: unknown): number | undefined {
+  return typeof value === 'number' && Number.isFinite(value) ? Math.max(0, Math.floor(value)) : undefined;
+}
+
+function usageFromResponse(data: Record<string, any> | undefined): { inputTokens?: number; outputTokens?: number; totalTokens?: number } {
+  const usage = data?.usage;
+  if (!usage || typeof usage !== 'object') return {};
+  const inputTokens = numberValue(usage.prompt_tokens) ?? numberValue(usage.input_tokens);
+  const outputTokens = numberValue(usage.completion_tokens) ?? numberValue(usage.output_tokens);
+  const totalTokens = numberValue(usage.total_tokens) ?? (inputTokens !== undefined || outputTokens !== undefined ? (inputTokens ?? 0) + (outputTokens ?? 0) : undefined);
+  return { inputTokens, outputTokens, totalTokens };
+}
+
+function recordSuccessfulUsage(store: ConfigStore, modelId: string, httpStatus: number, data?: Record<string, any>): void {
+  store.recordUsage(modelId, { success: true, httpStatus, ...usageFromResponse(data) });
+}
+
 async function recordUpstreamFailure(store: ConfigStore, modelId: string, upstream: Response): Promise<string> {
   const text = await upstream.text();
   const status = upstream.status === 429 ? 'rate-limited' : upstream.status === 402 ? 'payment' : 'failed';
   store.recordFailure(modelId, { status, httpStatus: upstream.status, error: text.slice(0, 500) });
+  store.recordUsage(modelId, { success: false, httpStatus: upstream.status, status });
   return text;
 }
 
-async function writeOpenAIAsAnthropic(upstream: Response, res: ServerResponse, body: any, modelId: string): Promise<void> {
+async function writeOpenAIAsAnthropic(upstream: Response, res: ServerResponse, body: any, modelId: string, onData?: (data?: Record<string, any>) => void): Promise<void> {
   if (body.stream) {
+    onData?.();
     await pipeOpenAIStreamAsAnthropic(upstream.body, res, modelId);
     return;
   }
   const data = await upstream.json() as Record<string, any>;
+  onData?.(data);
   json(res, upstream.status, openAIToAnthropic(data, modelId));
 }
 
@@ -164,11 +184,13 @@ export function createOmfmServer(options: ServerOptions = {}): http.Server {
           if (upstream.ok) {
             store.recordSuccess(modelId, Date.now() - started);
             if (body.stream) {
+              recordSuccessfulUsage(store, modelId, upstream.status);
               res.writeHead(upstream.status, { 'Content-Type': upstream.headers.get('content-type') ?? 'text/event-stream; charset=utf-8' });
               await pipeWebStreamToNode(upstream.body, res);
               return;
             }
-            const data = await upstream.json();
+            const data = await upstream.json() as Record<string, any>;
+            recordSuccessfulUsage(store, modelId, upstream.status, data);
             json(res, upstream.status, data);
             return;
           }
@@ -207,7 +229,7 @@ export function createOmfmServer(options: ServerOptions = {}): http.Server {
             const upstream = await postNvidiaChatCompletion({ apiKey, body: fallbackBody, fetchImpl });
             if (upstream.ok) {
               store.recordSuccess(modelId, Date.now() - started);
-              await writeOpenAIAsAnthropic(upstream, res, body, modelId);
+              await writeOpenAIAsAnthropic(upstream, res, body, modelId, (data) => recordSuccessfulUsage(store, modelId, upstream.status, data));
               return;
             }
             lastError = await recordUpstreamFailure(store, modelId, upstream);
@@ -221,18 +243,20 @@ export function createOmfmServer(options: ServerOptions = {}): http.Server {
             upstream = await postOpenRouterChatCompletion({ apiKey, body: fallbackBody, stream: Boolean(body.stream), fetchImpl });
             if (upstream.ok) {
               store.recordSuccess(modelId, Date.now() - started);
-              await writeOpenAIAsAnthropic(upstream, res, body, modelId);
+              await writeOpenAIAsAnthropic(upstream, res, body, modelId, (data) => recordSuccessfulUsage(store, modelId, upstream.status, data));
               return;
             }
           }
           if (upstream.ok) {
             store.recordSuccess(modelId, Date.now() - started);
             if (body.stream) {
+              recordSuccessfulUsage(store, modelId, upstream.status);
               res.writeHead(upstream.status, { 'Content-Type': upstream.headers.get('content-type') ?? 'text/event-stream; charset=utf-8' });
               await pipeWebStreamToNode(upstream.body, res);
               return;
             }
-            const data = await upstream.json();
+            const data = await upstream.json() as Record<string, any>;
+            recordSuccessfulUsage(store, modelId, upstream.status, data);
             json(res, upstream.status, data);
             return;
           }

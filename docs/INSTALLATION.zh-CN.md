@@ -86,6 +86,8 @@ omfm status
 omfm stop
 ```
 
+代理运行期间，会约每 5 分钟用保守的后台 probe 批次刷新已选模型的 latency。Probe 使用与 picker 相同的 cooldown 规则。
+
 默认端口是 `4567`，用 `--port` 修改：
 
 ```bash
@@ -130,9 +132,13 @@ export ANTHROPIC_API_KEY=
 
 ```bash
 omfm doctor
+omfm usage
+omfm usage --json
 ```
 
 `doctor` 输出 config 路径、provider 密钥来源、已选模型数、已缓存模型数和 daemon 状态。不修改任何配置。
+
+`usage` 输出每个模型的请求次数、成功/失败次数，以及从非 streaming provider 响应中观察到的 token 总量。Streaming 请求会计入请求次数，但 stream passthrough 通常无法获得 token 总量。
 
 ## 7. 路由与 latency 规则
 
@@ -142,6 +148,7 @@ omfm doctor
 - 组模型名（`omfm/fast`、`omfm/balanced`、`omfm/capable`，以及 `haiku`/`sonnet`/`opus`）在对应组有已选模型时只在该组内路由；空组 fallback 到完整已选列表。
 - 触发 rate-limit（HTTP 429）或 quota（HTTP 402）的模型，约 10 分钟内从候选列表中移除。如果所有已选模型都在冷却，则 fallback 到按 latency 排序的完整列表，确保请求不中断。
 - 请求成功后更新本地 latency 缓存。
+- `omfm start` 在代理运行期间也会在后台刷新已选模型的 latency。
 - 没有 latency 数据时，fallback 到选择时保存的确定性顺序。交互式 picker 和 `omfm model --all` 均按推荐排序保存该顺序。
 - `0.0.1` 版本不使用任何托管的 latency 服务。
 

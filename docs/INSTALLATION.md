@@ -86,6 +86,8 @@ omfm status
 omfm stop
 ```
 
+While the proxy is running, it refreshes selected-model latency in conservative background probe batches about every 5 minutes. Probes reuse the same cooldown rules as the picker.
+
 Default port is `4567`. Override with `--port`:
 
 ```bash
@@ -130,9 +132,13 @@ Required endpoints in `0.0.1`:
 
 ```bash
 omfm doctor
+omfm usage
+omfm usage --json
 ```
 
 `doctor` reports config paths, provider key sources, selected model count, cached model count, and daemon state. It doesn't modify any settings.
+
+`usage` reports per-model request counts, success/failure counts, and token totals observed in non-streaming provider responses. Streaming requests are counted, but token totals are usually unavailable from the stream passthrough.
 
 ## 7. Routing and latency rules
 
@@ -142,6 +148,7 @@ omfm doctor
 - Group model names (`omfm/fast`, `omfm/balanced`, `omfm/capable`, plus `haiku`/`sonnet`/`opus`) route only within the configured group when that group has selected models; empty groups fall back to the full selected list.
 - Models that just hit rate-limit (HTTP 429) or quota (HTTP 402) are skipped for ~10 minutes before becoming candidates again. If every selected model is cooling, routing falls back to the full latency-ordered list so requests still proceed.
 - Successful requests update the local latency cache.
+- `omfm start` also refreshes selected-model latency in the background while the proxy is running.
 - With no latency data, routing falls back to the deterministic selected order. The interactive picker and `omfm model --all` save that order from the recommendation-sorted display.
 - No hosted latency service is used in `0.0.1`.
 

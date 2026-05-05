@@ -70,13 +70,14 @@ describe('local proxy server', () => {
     const seen: any[] = [];
     const mockFetch: FetchLike = async (_url, init) => {
       seen.push(JSON.parse(String(init?.body)));
-      return Response.json({ id: 'chatcmpl_1', model: seen.at(-1).model, choices: [{ message: { role: 'assistant', content: 'ok' }, finish_reason: 'stop' }] });
+      return Response.json({ id: 'chatcmpl_1', model: seen.at(-1).model, choices: [{ message: { role: 'assistant', content: 'ok' }, finish_reason: 'stop' }], usage: { prompt_tokens: 2, completion_tokens: 3 } });
     };
     await withServer(store, mockFetch, async (base) => {
       const res = await fetch(`${base}/v1/chat/completions`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ model: 'auto', messages: [{ role: 'user', content: 'hi' }] }) });
       const body = await res.json() as any;
       expect(body.model).toBe('fast:free');
       expect(seen[0].model).toBe('fast:free');
+      expect(store.readUsage()['fast:free']).toMatchObject({ requests: 1, successes: 1, inputTokens: 2, outputTokens: 3, totalTokens: 5 });
     });
   });
 
@@ -110,6 +111,7 @@ describe('local proxy server', () => {
       const body = await res.json() as any;
       expect(body.model).toBe('slow:free');
       expect(seen[0].body.model).toBe('slow:free');
+      expect(store.readUsage()['slow:free']).toMatchObject({ requests: 1, successes: 1, inputTokens: 1, outputTokens: 1, totalTokens: 2 });
     });
   });
 
@@ -315,6 +317,7 @@ describe('local proxy server', () => {
       expect(firstBody.model).toBe('slow:free');
       expect(calls).toEqual(['fast:free', 'slow:free']);
       expect(store.readLatency()['fast:free']?.lastStatus).toBe('rate-limited');
+      expect(store.readUsage()['fast:free']).toMatchObject({ requests: 1, failures: 1, lastStatus: 'rate-limited', lastHttpStatus: 429 });
       const second = await fetch(`${base}/v1/chat/completions`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ model: 'auto', messages: [{ role: 'user', content: 'hi' }] }) });
       const secondBody = await second.json() as any;
       expect(secondBody.model).toBe('slow:free');
