@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { buildModelRows, filterListableModelRows, formatContextLength, formatLatency, formatRecommendation, recommendModel, renderStaticModelTable, sortModelRows, stripAnsi } from '../src/commands/model-view.js';
+import { buildModelRows, FAILED_MODEL_HIDE_TTL_MS, filterListableModelRows, formatContextLength, formatLatency, formatRecommendation, recommendModel, renderStaticModelTable, sortModelRows, stripAnsi } from '../src/commands/model-view.js';
 import { OmfmModel } from '../src/types.js';
 
 const models: OmfmModel[] = [
@@ -54,12 +54,24 @@ describe('model view formatting', () => {
     expect(formatRecommendation(recommendModel({ status: 'failed', latencyMs: 10, model: models[0] }))).toBe('—');
   });
 
-  it('filters failed rows from user-facing model lists', () => {
-    const rows = buildModelRows(models, new Set(), {
-      'alpha/a:free': { modelId: 'alpha/a:free', latencyMs: Number.POSITIVE_INFINITY, updatedAt: 'now', successes: 0, failures: 1, lastStatus: 'failed' },
-    });
+  it('temporarily filters recently failed rows from user-facing model lists', () => {
+    const now = Date.now();
+    const latency = {
+      'alpha/a:free': { modelId: 'alpha/a:free', latencyMs: Number.POSITIVE_INFINITY, updatedAt: new Date(now - 1_000).toISOString(), successes: 0, failures: 1, lastStatus: 'failed' },
+    };
+    const rows = buildModelRows(models, new Set(), latency);
 
-    expect(filterListableModelRows(rows).map((row) => row.model.id)).toEqual(['nvidia/beta/b']);
+    expect(filterListableModelRows(rows, latency, { now: () => now }).map((row) => row.model.id)).toEqual(['nvidia/beta/b']);
+  });
+
+  it('keeps older failed rows listable so they can be probed again', () => {
+    const now = Date.now();
+    const latency = {
+      'alpha/a:free': { modelId: 'alpha/a:free', latencyMs: Number.POSITIVE_INFINITY, updatedAt: new Date(now - FAILED_MODEL_HIDE_TTL_MS - 1).toISOString(), successes: 0, failures: 1, lastStatus: 'failed' },
+    };
+    const rows = buildModelRows(models, new Set(), latency);
+
+    expect(filterListableModelRows(rows, latency, { now: () => now }).map((row) => row.model.id)).toEqual(['alpha/a:free', 'nvidia/beta/b']);
   });
 
   it('sorts rows by selection, recommendation health, latency, and catalog rank', () => {

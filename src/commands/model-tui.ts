@@ -335,8 +335,9 @@ async function runRawModelTui(options: RawModelTuiOptions): Promise<ModelTuiResu
 
 export async function runModelTui(options: ModelTuiOptions): Promise<ModelTuiResult> {
   const selectedIds = new Set(options.selectedModelIds);
+  const latency = options.store.readLatency();
   const rows = sortModelRows(
-    filterListableModelRows(buildModelRows(options.models, selectedIds, options.store.readLatency())),
+    filterListableModelRows(buildModelRows(options.models, selectedIds, latency), latency),
     { selectedFirst: true },
   );
   return runRawModelTui({

@@ -104,7 +104,8 @@ async function loadModels(options: { apiKeys: ProviderApiKeys; fetchImpl?: Fetch
 }
 
 function listableModelRows(models: OmfmModel[], selectedIds: Set<string>, store: ConfigStore): ModelDisplayRow[] {
-  return filterListableModelRows(buildModelRows(models, selectedIds, store.readLatency()));
+  const latency = store.readLatency();
+  return filterListableModelRows(buildModelRows(models, selectedIds, latency), latency);
 }
 
 export async function runModelCommand(options: RunModelCommandOptions = {}): Promise<void> {

@@ -30,6 +30,8 @@ const RED = '\u001b[31m';
 const SELECTED_BG = '\u001b[48;5;236m';
 const RESET = '\u001b[0m';
 
+export const FAILED_MODEL_HIDE_TTL_MS = 5 * 60 * 1000;
+
 export type RecommendationMark = 'strong' | 'good' | 'weak' | 'none' | 'pending';
 
 export function hasAnsiControl(value: string): boolean {
@@ -169,8 +171,20 @@ export function sortModelRows(rows: ModelDisplayRow[], options: { selectedFirst?
   return [...rows].sort((a, b) => compareModelRows(a, b, options));
 }
 
-export function filterListableModelRows(rows: ModelDisplayRow[]): ModelDisplayRow[] {
-  return rows.filter((row) => row.status !== 'failed');
+function isRecentFailedObservation(observation: LatencyObservation | undefined, now: number, ttlMs: number): boolean {
+  if (observation?.lastStatus !== 'failed') return false;
+  const updatedAt = Date.parse(observation.updatedAt);
+  return Number.isFinite(updatedAt) && now - updatedAt < ttlMs;
+}
+
+export function filterListableModelRows(
+  rows: ModelDisplayRow[],
+  latency: Record<string, LatencyObservation> = {},
+  options: { now?: () => number; failedHideTtlMs?: number } = {},
+): ModelDisplayRow[] {
+  const now = options.now?.() ?? Date.now();
+  const failedHideTtlMs = options.failedHideTtlMs ?? FAILED_MODEL_HIDE_TTL_MS;
+  return rows.filter((row) => !isRecentFailedObservation(latency[row.model.id], now, failedHideTtlMs));
 }
 
 function pad(value: string, width: number): string {

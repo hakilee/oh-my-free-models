@@ -111,6 +111,23 @@ describe('model command integration', () => {
     expect(allOut.text()).toContain('Beta');
   });
 
+  it('keeps older failed models eligible for reprobe and selection', async () => {
+    const store = tempStore();
+    store.writeLatency({
+      'alpha/a:free': {
+        modelId: 'alpha/a:free',
+        latencyMs: Number.POSITIVE_INFINITY,
+        updatedAt: new Date(Date.now() - 6 * 60 * 1000).toISOString(),
+        successes: 0,
+        failures: 1,
+        lastStatus: 'failed',
+      },
+    });
+    const out = output(false);
+    await runModelCommand({ json: true, store, fetchImpl: okFetch(), env: { OPENROUTER_API_KEY: 'key' } as NodeJS.ProcessEnv, stdout: out.stream });
+    expect((JSON.parse(out.text()) as any).models.map((model: any) => model.id)).toEqual(['alpha/a:free', 'beta/b:free']);
+  });
+
   it('--all selects all and non-TTY static output does not open TUI', async () => {
     const store = tempStore();
     const out = output(false);
