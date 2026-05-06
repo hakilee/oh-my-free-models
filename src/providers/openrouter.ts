@@ -1,4 +1,5 @@
 import { FetchLike, OmfmModel } from '../types.js';
+import { VERSION } from '../version.js';
 import { loadModelMetadataCatalog, modelMetadata, ProviderMetadataCatalog } from './metadata.js';
 
 export interface OpenRouterModel {
@@ -61,7 +62,7 @@ async function fetchOpenRouterModels(options: { apiKey: string; fetchImpl: Fetch
   const response = await options.fetchImpl(url, {
     headers: {
       Authorization: `Bearer ${options.apiKey}`,
-      'User-Agent': 'oh-my-free-models/0.0.1',
+      'User-Agent': `oh-my-free-models/${VERSION}`,
     },
   });
   if (!response.ok) {

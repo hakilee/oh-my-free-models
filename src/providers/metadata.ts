@@ -3,6 +3,7 @@ import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 import type { FetchLike, ModelSource } from '../types.js';
+import { VERSION } from '../version.js';
 import { parseTokenCount } from './context-length.js';
 
 export const MODEL_METADATA_RAW_URL = 'https://raw.githubusercontent.com/hakilee/oh-my-free-models/model-metadata/data/model-metadata.json';
@@ -65,7 +66,7 @@ async function fetchRemoteCatalog(fetchImpl: FetchLike): Promise<ProviderMetadat
     const response = await fetchImpl(MODEL_METADATA_RAW_URL, {
       headers: {
         Accept: 'application/json',
-        'User-Agent': 'oh-my-free-models/0.0.1',
+        'User-Agent': `oh-my-free-models/${VERSION}`,
       },
       signal: controller.signal,
     });

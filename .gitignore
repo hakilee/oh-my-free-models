@@ -32,3 +32,6 @@ yarn-error.log*
 
 # Generated metadata (published to model-metadata branch, not main)
 data/model-metadata.json
+
+# Generated at build time from package.json version
+src/version.ts

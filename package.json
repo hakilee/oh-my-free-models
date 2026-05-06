@@ -1,6 +1,6 @@
 {
   "name": "oh-my-free-models",
-  "version": "0.0.2",
+  "version": "0.0.3",
   "description": "Route your coding agent to the fastest free LLM in real time.",
   "license": "MIT",
   "repository": {
@@ -23,9 +23,14 @@
   "scripts": {
     "docs:check": "node scripts/check-docs.mjs",
     "metadata:update": "node scripts/update-model-metadata.mjs",
+    "version:generate": "node scripts/generate-version.mjs",
+    "prebuild": "node scripts/generate-version.mjs",
     "build": "tsc -p tsconfig.json",
+    "pretypecheck": "node scripts/generate-version.mjs",
     "typecheck": "tsc --noEmit -p tsconfig.json",
+    "pretest": "node scripts/generate-version.mjs",
     "test": "vitest run",
+    "predev": "node scripts/generate-version.mjs",
     "dev": "tsx src/cli.ts"
   },
   "engines": {

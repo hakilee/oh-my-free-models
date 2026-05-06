@@ -1,4 +1,5 @@
 import { FetchLike, OmfmModel } from '../types.js';
+import { VERSION } from '../version.js';
 import { extractContextLengthFromRecord } from './context-length.js';
 import { loadModelMetadataCatalog, modelMetadata, ProviderMetadataCatalog } from './metadata.js';
 
@@ -54,7 +55,7 @@ export async function listNvidiaFreeModels(options: { apiKey: string; fetchImpl?
   const response = await fetchImpl('https://integrate.api.nvidia.com/v1/models', {
     headers: {
       Authorization: `Bearer ${options.apiKey}`,
-      'User-Agent': 'oh-my-free-models/0.0.1',
+      'User-Agent': `oh-my-free-models/${VERSION}`,
     },
   });
   if (!response.ok) {
