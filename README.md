@@ -37,6 +37,16 @@ You give `omfm` an allowlist of free models you actually want to use. It runs as
 
 Your agent points at `localhost`. Provider switching, rate-limit retries, and picking the currently-fast model all happen below it.
 
+## Get API keys
+
+`omfm` only forwards traffic. You bring keys from one or both providers.
+
+**OpenRouter** — sign up at [openrouter.ai](https://openrouter.ai), then issue a key under Keys (prefix `sk-or-`). Free `:free` models cap at 50 requests/day; topping up at least $10 in credits raises the cap to 1,000/day. No credit card needed for the free cap.
+
+**NVIDIA** — sign up at [build.nvidia.com](https://build.nvidia.com) (NVIDIA Developer Program), then click "Get API Key" on any model card (prefix `nvapi-`). No credit card needed; rate limits apply per model.
+
+Add whichever you have to `~/.oh-my-free-models/.env` — `omfm` only uses providers whose key is set.
+
 ## 30-second try-it
 
 ```bash

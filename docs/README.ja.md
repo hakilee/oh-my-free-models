@@ -37,6 +37,16 @@ Free tier のコーディング agent はスペック上は魅力的に見えて
 
 agent は `localhost` だけを見ていれば OK。provider の切り替え、rate-limit 後のリトライ、「今速いモデル」の選択はその下で静かに行われます。
 
+## API キーを取得する
+
+`omfm` はトラフィックを転送するだけです。キーは二つの provider のうち片方または両方から自分で発行します。
+
+**OpenRouter** — [openrouter.ai](https://openrouter.ai) でサインアップしたあと、Keys メニューでキーを発行します（prefix `sk-or-`）。`:free` モデルは 1 日 50 リクエストが上限で、$10 以上のクレジットを購入すると 1 日 1,000 リクエストまで上がります。無料枠にはクレジットカード登録は不要です。
+
+**NVIDIA** — [build.nvidia.com](https://build.nvidia.com)（NVIDIA Developer Program）でサインアップしたあと、任意のモデルカードで "Get API Key" をクリックして発行します（prefix `nvapi-`）。クレジットカード登録は不要で、rate-limit はモデルごとに適用されます。
+
+手元にあるキーを `~/.oh-my-free-models/.env` に入れておけば、`omfm` はキーが設定された provider だけを使います。
+
 ## 30 秒で試す
 
 ```bash

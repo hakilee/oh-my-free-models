@@ -37,6 +37,16 @@ https://github.com/user-attachments/assets/44c07928-1544-4b33-a472-41e82f7aa7d7
 
 Agent 只管盯着 `localhost`。provider 切换、rate-limit 重试、选出当前最快的模型，这些都在它下面静悄悄地发生。
 
+## 申请 API key
+
+`omfm` 只负责转发流量。你需要自己从一个或两个 provider 申请 key。
+
+**OpenRouter** — 在 [openrouter.ai](https://openrouter.ai) 注册后，到 Keys 菜单里签发 key（prefix `sk-or-`）。`:free` 模型每天最多 50 次请求；充值至少 $10 的 credit 后，上限会提高到每天 1,000 次。免费额度不需要绑定信用卡。
+
+**NVIDIA** — 在 [build.nvidia.com](https://build.nvidia.com)（NVIDIA Developer Program）注册后，在任意模型卡片上点击 "Get API Key" 即可签发（prefix `nvapi-`）。不需要绑定信用卡；rate-limit 按模型分别计算。
+
+把你手上的 key 写进 `~/.oh-my-free-models/.env`，`omfm` 只会使用设置了 key 的 provider。
+
 ## 30 秒上手
 
 ```bash
