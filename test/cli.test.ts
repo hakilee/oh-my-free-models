@@ -14,6 +14,11 @@ describe('CLI entrypoint', () => {
     expect(out).toContain('omfm model');
   });
 
+  it('prints version with --version', () => {
+    const out = execFileSync(process.execPath, ['--import', 'tsx', 'src/cli.ts', '--version'], { encoding: 'utf8' });
+    expect(out.trim()).toMatch(/^\d+\.\d+\.\d+/);
+  });
+
   it('reports stopped status without daemon', () => {
     const root = fs.mkdtempSync(path.join(os.tmpdir(), 'omfm-cli-'));
     roots.push(root);

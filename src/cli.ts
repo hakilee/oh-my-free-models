@@ -37,11 +37,15 @@ function parsePort(value: string | boolean | undefined): number | undefined {
 }
 
 function help(): void {
-  console.log(`oh-my-free-models ${VERSION}\n\nUsage:\n  omfm model [--all] [--select id1,id2] [--group fast|balanced|capable] [--best] [--json]\n  omfm start [--port 4567] [--daemon]\n  omfm stop\n  omfm status\n  omfm usage [--json]\n  omfm doctor\n\nEnvironment:\n  OPENROUTER_API_KEY and NVIDIA_API_KEY are read from the process first, then ~/.oh-my-free-models/.env\n`);
+  console.log(`oh-my-free-models ${VERSION}\n\nUsage:\n  omfm model [--all] [--select id1,id2] [--group fast|balanced|capable] [--best] [--json]\n  omfm start [--port 4567] [--daemon]\n  omfm stop\n  omfm status\n  omfm usage [--json]\n  omfm doctor\n  omfm --version\n\nEnvironment:\n  OPENROUTER_API_KEY and NVIDIA_API_KEY are read from the process first, then ~/.oh-my-free-models/.env\n`);
 }
 
 async function main(): Promise<void> {
   const parsed = parseArgs(process.argv.slice(2));
+  if (parsed.command === '--version' || parsed.command === '-v' || parsed.command === 'version') {
+    console.log(VERSION);
+    return;
+  }
   if (parsed.command === 'help' || parsed.command === '--help' || parsed.command === '-h') {
     help();
     return;
