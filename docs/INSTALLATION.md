@@ -71,6 +71,7 @@ When stdout is not a TTY, `omfm model` prints a static ANSI-free table and skips
 | `omfm model --json` | Print model rows as JSON. |
 | `omfm model --best` | Probe selected models and print the best candidate. |
 | `omfm model --best --json` | Print the best candidate as JSON. |
+| `omfm model --no-tui` | Force the static model table even on a TTY. |
 
 Use `--group fast|balanced|capable` to maintain separate model pools for coding-agent modes. Requests for `omfm/fast`, `omfm/balanced`, or `omfm/capable` route inside that group; `haiku`, `sonnet`, and `opus` are accepted as friendly aliases.
 

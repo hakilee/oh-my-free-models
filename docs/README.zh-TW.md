@@ -62,6 +62,7 @@ omfm start        # 啟動 http://localhost:4567
 | --- | --- |
 | `omfm model` | 開啟 picker，並儲存選取的免費模型。 |
 | `omfm model --all` | 不開啟 picker，直接列出所有可選模型。 |
+| `omfm model --no-tui` | 不開啟 TUI，直接輸出靜態模型表。 |
 | `omfm model --group fast --best` | Probe fast 群組，並輸出目前最佳候選。 |
 | `omfm start` | 在前景執行本機代理，並輸出 request/response 路由日誌。 |
 | `omfm start --daemon` | 在背景以 daemon 方式執行本機代理。 |

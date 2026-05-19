@@ -62,6 +62,7 @@ omfm start        # http://localhost:4567 を起動
 | --- | --- |
 | `omfm model` | picker を開き、選択した free モデルを保存します。 |
 | `omfm model --all` | picker を開かずに、選択可能な全モデルを表示します。 |
+| `omfm model --no-tui` | TUI を開かず、静的なモデル表だけを表示します。 |
 | `omfm model --group fast --best` | fast グループを probe し、現在の最良候補を表示します。 |
 | `omfm start` | ローカルプロキシを foreground で起動し、request/response ルーティングログを出力します。 |
 | `omfm start --daemon` | ローカルプロキシを background daemon として起動します。 |

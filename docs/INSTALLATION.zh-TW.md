@@ -71,6 +71,7 @@ Latency probe 以小規模並行批次執行，速率設定保守。`rate-limit`
 | `omfm model --json` | 以 JSON 輸出模型列。 |
 | `omfm model --best` | Probe 已選模型並輸出最佳候選。 |
 | `omfm model --best --json` | 以 JSON 輸出最佳候選。 |
+| `omfm model --no-tui` | 即便在 TTY 中也強制輸出靜態模型表。 |
 
 使用 `--group fast|balanced|capable` 可以替不同的 coding-agent mode 維護獨立模型池。請求 `omfm/fast`、`omfm/balanced` 或 `omfm/capable` 時只會在對應群組內路由；`haiku`、`sonnet`、`opus` 也會被視為易記的 alias。
 

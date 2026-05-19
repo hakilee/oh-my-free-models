@@ -23,6 +23,7 @@ export interface RunModelCommandOptions {
   json?: boolean;
   best?: boolean;
   group?: string;
+  noTui?: boolean;
   store?: ConfigStore;
   fetchImpl?: FetchLike;
   env?: NodeJS.ProcessEnv;
@@ -142,7 +143,7 @@ export async function runModelCommand(options: RunModelCommandOptions = {}): Pro
     }
     if (group) store.updateModelGroup(group, options.select);
     else store.updateSelectedModelIds(options.select);
-  } else if (!options.json && stdout.isTTY) {
+  } else if (!options.json && stdout.isTTY && !options.noTui) {
     const runTui = options.runTui ?? runModelTui;
     const result = await runTui({
       models,
@@ -172,7 +173,7 @@ export async function runModelCommand(options: RunModelCommandOptions = {}): Pro
     return;
   }
 
-  if (!stdout.isTTY || options.all || options.select) {
+  if (!stdout.isTTY || options.all || options.select || options.noTui) {
     const selectedIds = new Set(store.readConfig().selectedModelIds);
     stdout.write(`Free models:\n${renderStaticModelTable(sortModelRows(listableModelRows(models, selectedIds, store), { selectedFirst: true }))}`);
   }

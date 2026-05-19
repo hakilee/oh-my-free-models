@@ -225,6 +225,44 @@ describe('model command integration', () => {
     expect(body.models).toMatchObject([{ id: 'nvidia/deepseek-ai/deepseek-v3.2', source: 'nvidia' }]);
   });
 
+  it('--no-tui on a TTY skips the picker and prints the static table', async () => {
+    const store = tempStore();
+    store.updateSelectedModelIds(['alpha/a:free']);
+    const out = output(true);
+    const runTui = vi.fn();
+    await runModelCommand({
+      noTui: true,
+      store,
+      fetchImpl: okFetch(),
+      env: { OPENROUTER_API_KEY: 'key' } as NodeJS.ProcessEnv,
+      stdout: out.stream,
+      runTui,
+    });
+    expect(runTui).not.toHaveBeenCalled();
+    expect(out.text()).toContain('Free models:');
+    expect(out.text()).toContain('Alpha');
+    expect(out.text()).not.toContain('[?1049h');
+    expect(store.readConfig().selectedModelIds).toEqual(['alpha/a:free']);
+  });
+
+  it('--no-tui --select on a TTY writes the selection and skips the picker', async () => {
+    const store = tempStore();
+    const out = output(true);
+    const runTui = vi.fn();
+    await runModelCommand({
+      noTui: true,
+      select: ['beta/b:free'],
+      store,
+      fetchImpl: okFetch(),
+      env: { OPENROUTER_API_KEY: 'key' } as NodeJS.ProcessEnv,
+      stdout: out.stream,
+      runTui,
+    });
+    expect(runTui).not.toHaveBeenCalled();
+    expect(store.readConfig().selectedModelIds).toEqual(['beta/b:free']);
+    expect(out.text()).toContain('Free models:');
+  });
+
   it('TTY default opens injected TUI with current selection', async () => {
     const store = tempStore();
     store.updateSelectedModelIds(['alpha/a:free']);
