@@ -62,7 +62,7 @@ omfm start        # http://localhost:4567 서빙
 | --- | --- |
 | `omfm model` | Picker를 열고 사용할 free 모델을 저장합니다. |
 | `omfm model --all` | Picker 없이 선택 가능한 모든 모델을 출력합니다. |
-| `omfm model --no-tui` | TUI 없이 정적 모델 표를 출력합니다. |
+| `omfm model --no-tui` | TUI를 띄우지 않고 번호가 매겨진 정적 표와 한 줄 프롬프트로 모델을 선택합니다. |
 | `omfm model --group fast --best` | fast 그룹을 probe하고 현재 가장 좋은 후보를 출력합니다. |
 | `omfm start` | 로컬 프록시를 foreground로 실행하고 request/response 라우팅 로그를 출력합니다. |
 | `omfm start --daemon` | 로컬 프록시를 background daemon으로 실행합니다. |

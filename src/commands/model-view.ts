@@ -16,6 +16,7 @@ export interface ModelTableRenderOptions {
   colorLatency?: boolean;
   colorRecommendation?: boolean;
   interactive?: boolean;
+  withRowNumbers?: boolean;
   maxWidth?: number;
   measureRows?: ModelDisplayRow[];
   minBodyRows?: number;
@@ -245,13 +246,16 @@ function sourceLabel(model: OmfmModel): string {
 
 export function renderStaticModelTable(rows: ModelDisplayRow[], options: ModelTableRenderOptions = {}): string {
   const interactive = Boolean(options.interactive);
+  const withRowNumbers = !interactive && Boolean(options.withRowNumbers);
   const measureRows = options.measureRows ?? rows;
   const sourceWidth = Math.max(6, ...measureRows.map((row) => sourceLabel(row.model).length));
   const providerWidth = Math.max(8, ...measureRows.map((row) => row.model.provider.length));
   const modelWidth = Math.min(48, Math.max(10, ...measureRows.map((row) => Math.max(row.model.name.length, row.model.id.length))));
+  const numberWidth = withRowNumbers ? Math.max(2, String(Math.max(measureRows.length, rows.length)).length + 1) : 0;
+  const numberPrefix = withRowNumbers ? `${pad('#', numberWidth)} ` : '';
   const header = interactive
     ? `${pad('Cur', 3)} ${pad('Sel', 3)} ${pad('Source', sourceWidth)} ${pad('Provider', providerWidth)} ${pad('Model', modelWidth)} ${pad('Ctx', 6)} ${pad('Lat', 7)} ${pad('Recommend', 9)} Status`
-    : `${pad('Sel', 3)} ${pad('Source', sourceWidth)} ${pad('Provider', providerWidth)} ${pad('Model', modelWidth)} ${pad('Ctx', 6)} ${pad('Lat', 7)} ${pad('Recommend', 9)} Status`;
+    : `${numberPrefix}${pad('Sel', 3)} ${pad('Source', sourceWidth)} ${pad('Provider', providerWidth)} ${pad('Model', modelWidth)} ${pad('Ctx', 6)} ${pad('Lat', 7)} ${pad('Recommend', 9)} Status`;
   const lines = [maybeConstrainLine(header, options.maxWidth)];
   for (const [index, row] of rows.entries()) {
     const active = options.activeIndex === index;
@@ -260,6 +264,7 @@ export function renderStaticModelTable(rows: ModelDisplayRow[], options: ModelTa
     const source = sourceLabel(row.model);
     const provider = stripControls(row.model.provider);
     const modelLabel = stripControls(row.model.name === row.model.id ? row.model.id : `${row.model.name} (${row.model.id})`);
+    const rowNumber = withRowNumbers ? `${pad(`${index + 1}.`, numberWidth)} ` : '';
     const fields = [
       pad(marker, 3),
       pad(source, sourceWidth),
@@ -270,15 +275,16 @@ export function renderStaticModelTable(rows: ModelDisplayRow[], options: ModelTa
       padTrustedAnsi(formatRecommendation(row.recommendation, { color: options.colorRecommendation }), 9),
       statusLabel(row.status),
     ];
-    const line = maybeConstrainLine(interactive ? [pad(cursor, 3), ...fields].join(' ') : fields.join(' '), options.maxWidth);
+    const line = maybeConstrainLine(interactive ? [pad(cursor, 3), ...fields].join(' ') : `${rowNumber}${fields.join(' ')}`, options.maxWidth);
     const styled = interactive && row.selected ? `${SELECTED_BG}${line}${RESET}` : line;
     lines.push(interactive && active ? `${INVERSE}${styled}${RESET}` : styled);
   }
+  const emptyNumberPrefix = withRowNumbers ? `${pad('', numberWidth)} ` : '';
   const minBodyRows = Math.max(0, Math.floor(options.minBodyRows ?? 0));
   const emptyBodyLine = maybeConstrainLine(
     interactive
       ? `${pad('', 3)} ${pad('', 3)} ${pad('', sourceWidth)} ${pad('', providerWidth)} ${pad('', modelWidth)} ${pad('', 6)} ${pad('', 7)} ${pad('', 9)}`
-      : `${pad('', 3)} ${pad('', sourceWidth)} ${pad('', providerWidth)} ${pad('', modelWidth)} ${pad('', 6)} ${pad('', 7)} ${pad('', 9)}`,
+      : `${emptyNumberPrefix}${pad('', 3)} ${pad('', sourceWidth)} ${pad('', providerWidth)} ${pad('', modelWidth)} ${pad('', 6)} ${pad('', 7)} ${pad('', 9)}`,
     options.maxWidth,
   );
   while (lines.length - 1 < minBodyRows) lines.push(emptyBodyLine);

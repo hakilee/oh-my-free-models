@@ -225,24 +225,131 @@ describe('model command integration', () => {
     expect(body.models).toMatchObject([{ id: 'nvidia/deepseek-ai/deepseek-v3.2', source: 'nvidia' }]);
   });
 
-  it('--no-tui on a TTY skips the picker and prints the static table', async () => {
+  it('--no-tui on a TTY without an interactive stdin skips the picker and prints the static table', async () => {
     const store = tempStore();
     store.updateSelectedModelIds(['alpha/a:free']);
     const out = output(true);
     const runTui = vi.fn();
+    const promptLine = vi.fn();
     await runModelCommand({
       noTui: true,
       store,
       fetchImpl: okFetch(),
       env: { OPENROUTER_API_KEY: 'key' } as NodeJS.ProcessEnv,
       stdout: out.stream,
+      stdin: { isTTY: false } as unknown as NodeJS.ReadStream,
       runTui,
+      promptLine,
     });
     expect(runTui).not.toHaveBeenCalled();
+    expect(promptLine).not.toHaveBeenCalled();
     expect(out.text()).toContain('Free models:');
     expect(out.text()).toContain('Alpha');
     expect(out.text()).not.toContain('[?1049h');
     expect(store.readConfig().selectedModelIds).toEqual(['alpha/a:free']);
+  });
+
+  it('--no-tui on an interactive stdin prompts for rows and saves the selection', async () => {
+    const store = tempStore();
+    const out = output(true);
+    const runTui = vi.fn();
+    const promptLine = vi.fn(async ({ question }: { question: string }) => {
+      expect(question).toContain('Select rows');
+      return '2';
+    });
+    await runModelCommand({
+      noTui: true,
+      store,
+      fetchImpl: okFetch(),
+      env: { OPENROUTER_API_KEY: 'key' } as NodeJS.ProcessEnv,
+      stdout: out.stream,
+      stdin: { isTTY: true } as unknown as NodeJS.ReadStream,
+      runTui,
+      promptLine,
+    });
+    expect(runTui).not.toHaveBeenCalled();
+    expect(promptLine).toHaveBeenCalledOnce();
+    expect(out.text()).toContain('Free models:');
+    expect(out.text()).toMatch(/\n1\. /);
+    expect(out.text()).toMatch(/\n2\. /);
+    expect(out.text()).toContain('Saved 1 selection(s).');
+    expect(store.readConfig().selectedModelIds.length).toBe(1);
+  });
+
+  it('--no-tui prompt accepts mixed row numbers and model IDs and dedupes them', async () => {
+    const store = tempStore();
+    const out = output(true);
+    const promptLine = vi.fn(async () => '1, beta/b:free, 2');
+    await runModelCommand({
+      noTui: true,
+      store,
+      fetchImpl: okFetch(),
+      env: { OPENROUTER_API_KEY: 'key' } as NodeJS.ProcessEnv,
+      stdout: out.stream,
+      stdin: { isTTY: true } as unknown as NodeJS.ReadStream,
+      promptLine,
+    });
+    const saved = store.readConfig().selectedModelIds;
+    expect(new Set(saved)).toEqual(new Set(['alpha/a:free', 'beta/b:free']));
+    expect(saved.length).toBe(2);
+    expect(out.text()).toContain('Saved 2 selection(s).');
+  });
+
+  it('--no-tui prompt with blank input keeps the current selection', async () => {
+    const store = tempStore();
+    store.updateSelectedModelIds(['alpha/a:free']);
+    const out = output(true);
+    const promptLine = vi.fn(async () => '');
+    await runModelCommand({
+      noTui: true,
+      store,
+      fetchImpl: okFetch(),
+      env: { OPENROUTER_API_KEY: 'key' } as NodeJS.ProcessEnv,
+      stdout: out.stream,
+      stdin: { isTTY: true } as unknown as NodeJS.ReadStream,
+      promptLine,
+    });
+    expect(store.readConfig().selectedModelIds).toEqual(['alpha/a:free']);
+    expect(out.text()).toContain('No change.');
+  });
+
+  it('--no-tui prompt with q cancels and sets exit code 130', async () => {
+    const previousExitCode = process.exitCode;
+    process.exitCode = 0;
+    try {
+      const store = tempStore();
+      store.updateSelectedModelIds(['alpha/a:free']);
+      const promptLine = vi.fn(async () => 'q');
+      await runModelCommand({
+        noTui: true,
+        store,
+        fetchImpl: okFetch(),
+        env: { OPENROUTER_API_KEY: 'key' } as NodeJS.ProcessEnv,
+        stdout: output(true).stream,
+        stdin: { isTTY: true } as unknown as NodeJS.ReadStream,
+        promptLine,
+      });
+      expect(store.readConfig().selectedModelIds).toEqual(['alpha/a:free']);
+      expect(process.exitCode).toBe(130);
+    } finally {
+      process.exitCode = previousExitCode;
+    }
+  });
+
+  it('--no-tui prompt rejects unknown tokens', async () => {
+    const store = tempStore();
+    const promptLine = vi.fn(async () => 'nope');
+    await expect(
+      runModelCommand({
+        noTui: true,
+        store,
+        fetchImpl: okFetch(),
+        env: { OPENROUTER_API_KEY: 'key' } as NodeJS.ProcessEnv,
+        stdout: output(true).stream,
+        stdin: { isTTY: true } as unknown as NodeJS.ReadStream,
+        promptLine,
+      }),
+    ).rejects.toThrow('Unknown selection token');
   });
 
   it('--no-tui --select on a TTY writes the selection and skips the picker', async () => {

@@ -62,7 +62,7 @@ omfm start        # serves http://localhost:4567
 | --- | --- |
 | `omfm model` | Open the picker and save selected free models. |
 | `omfm model --all` | Print all eligible models without opening the picker. |
-| `omfm model --no-tui` | Print a static table without opening the TUI. |
+| `omfm model --no-tui` | Skip the TUI and pick rows from a numbered static table via a single-line prompt. |
 | `omfm model --group fast --best` | Probe the fast group and print the best current candidate. |
 | `omfm start` | Run the local proxy in the foreground with request/response routing logs. |
 | `omfm start --daemon` | Run the local proxy in the background. |

@@ -1,3 +1,4 @@
+import { createInterface } from 'node:readline';
 import { Writable } from 'node:stream';
 import { requireAnyProviderApiKey } from '../config/env.js';
 import { ConfigStore } from '../config/store.js';
@@ -17,6 +18,14 @@ interface OutputLike {
 
 type InputLike = NodeJS.ReadStream;
 
+export interface PromptLineOptions {
+  question: string;
+  stdin: InputLike;
+  stdout: OutputLike;
+}
+
+export type PromptLine = (options: PromptLineOptions) => Promise<string | null>;
+
 export interface RunModelCommandOptions {
   select?: string[];
   all?: boolean;
@@ -32,6 +41,47 @@ export interface RunModelCommandOptions {
   stdin?: InputLike;
   runTui?: typeof runModelTui;
   runScheduler?: typeof runProbeScheduler;
+  promptLine?: PromptLine;
+}
+
+async function defaultPromptLine({ question, stdin, stdout }: PromptLineOptions): Promise<string | null> {
+  return new Promise<string | null>((resolve) => {
+    const rl = createInterface({ input: stdin, output: stdout as Writable, terminal: false });
+    let settled = false;
+    const finish = (result: string | null): void => {
+      if (settled) return;
+      settled = true;
+      rl.close();
+      resolve(result);
+    };
+    rl.question(question, (answer) => finish(answer));
+    rl.once('SIGINT', () => finish(null));
+    rl.once('close', () => finish(null));
+  });
+}
+
+function parseSelectionInput(input: string, rows: ModelDisplayRow[]): { ids: string[]; invalid: string[] } {
+  const tokens = input.split(/[\s,]+/).map((token) => token.trim()).filter(Boolean);
+  const freeIds = new Set(rows.map((row) => row.model.id));
+  const ids: string[] = [];
+  const seen = new Set<string>();
+  const invalid: string[] = [];
+  for (const token of tokens) {
+    if (/^\d+$/.test(token)) {
+      const n = Number(token);
+      if (n >= 1 && n <= rows.length) {
+        const id = rows[n - 1]!.model.id;
+        if (!seen.has(id)) { seen.add(id); ids.push(id); }
+        continue;
+      }
+    }
+    if (freeIds.has(token)) {
+      if (!seen.has(token)) { seen.add(token); ids.push(token); }
+      continue;
+    }
+    invalid.push(token);
+  }
+  return { ids, invalid };
 }
 
 function writeLine(output: OutputLike, text: string): void {
@@ -164,6 +214,41 @@ export async function runModelCommand(options: RunModelCommandOptions = {}): Pro
       });
     }
     if (result.interrupted) process.exitCode = 130;
+  } else if (!options.json && options.noTui && stdout.isTTY) {
+    const stdinStream = options.stdin ?? (process.stdin as InputLike);
+    if (stdinStream.isTTY) {
+      const selectedIds = new Set(store.readConfig().selectedModelIds);
+      const rows = sortModelRows(listableModelRows(models, selectedIds, store), { selectedFirst: true });
+      stdout.write(`Free models:\n${renderStaticModelTable(rows, { withRowNumbers: true })}`);
+      const promptLine = options.promptLine ?? defaultPromptLine;
+      const answer = await promptLine({
+        question: 'Select rows (e.g. 1,3,5 — blank to keep, q to cancel): ',
+        stdin: stdinStream,
+        stdout,
+      });
+      if (answer === null) {
+        process.exitCode = 130;
+        return;
+      }
+      const trimmed = answer.trim();
+      if (trimmed === '') {
+        writeLine(stdout, 'No change.');
+        return;
+      }
+      if (trimmed.toLowerCase() === 'q') {
+        writeLine(stdout, 'Cancelled.');
+        process.exitCode = 130;
+        return;
+      }
+      const { ids, invalid } = parseSelectionInput(trimmed, rows);
+      if (invalid.length > 0) {
+        throw new Error(`Unknown selection token(s): ${invalid.join(', ')}`);
+      }
+      if (group) store.updateModelGroup(group, ids);
+      else store.updateSelectedModelIds(ids);
+      writeLine(stdout, `Saved ${ids.length} selection(s).`);
+      return;
+    }
   }
 
   if (options.json) {
