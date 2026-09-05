@@ -1,0 +1,1136 @@
+{
+  "schemaVersion": 1,
+  "models": [
+    {
+      "source": "nvidia",
+      "id": "ansys/fluent",
+      "name": "fluent",
+      "metadataSources": [
+        "api.ngc.nvidia.com/v2/endpoints/qc69jvmznzxy/fluent",
+        "api.ngc.nvidia.com/v2/search/catalog/resources/ENDPOINT"
+      ]
+    },
+    {
+      "source": "nvidia",
+      "id": "arc/evo2-40b",
+      "name": "evo2-40b",
+      "metadataSources": [
+        "api.ngc.nvidia.com/v2/endpoints/qc69jvmznzxy/evo2-40b",
+        "api.ngc.nvidia.com/v2/search/catalog/resources/ENDPOINT"
+      ]
+    },
+    {
+      "source": "nvidia",
+      "id": "arc/evo2-40b-forward",
+      "name": "evo2-40b-forward",
+      "metadataSources": [
+        "api.ngc.nvidia.com/v2/endpoints/qc69jvmznzxy/evo2-40b-forward",
+        "api.ngc.nvidia.com/v2/search/catalog/resources/ENDPOINT"
+      ]
+    },
+    {
+      "source": "nvidia",
+      "id": "arc/evo2-7b-forward",
+      "name": "evo2-7b-forward",
+      "metadataSources": [
+        "api.ngc.nvidia.com/v2/endpoints/qc69jvmznzxy/evo2-7b-forward",
+        "api.ngc.nvidia.com/v2/search/catalog/resources/ENDPOINT"
+      ]
+    },
+    {
+      "source": "nvidia",
+      "id": "baidu/paddleocr",
+      "name": "paddleocr",
+      "metadataSources": [
+        "api.ngc.nvidia.com/v2/endpoints/qc69jvmznzxy/paddleocr",
+        "api.ngc.nvidia.com/v2/search/catalog/resources/ENDPOINT"
+      ]
+    },
+    {
+      "source": "nvidia",
+      "id": "black-forest-labs/flux_1-dev",
+      "name": "FLUX.1-dev",
+      "metadataSources": [
+        "api.ngc.nvidia.com/v2/endpoints/qc69jvmznzxy/flux_1-dev",
+        "api.ngc.nvidia.com/v2/search/catalog/resources/ENDPOINT"
+      ]
+    },
+    {
+      "source": "nvidia",
+      "id": "black-forest-labs/flux_1-kontext-dev",
+      "name": "FLUX.1-Kontext-dev",
+      "metadataSources": [
+        "api.ngc.nvidia.com/v2/endpoints/qc69jvmznzxy/flux_1-kontext-dev",
+        "api.ngc.nvidia.com/v2/search/catalog/resources/ENDPOINT"
+      ]
+    },
+    {
+      "source": "nvidia",
+      "id": "black-forest-labs/flux_1-schnell",
+      "name": "FLUX.1-schnell",
+      "metadataSources": [
+        "api.ngc.nvidia.com/v2/endpoints/qc69jvmznzxy/flux_1-schnell",
+        "api.ngc.nvidia.com/v2/search/catalog/resources/ENDPOINT"
+      ]
+    },
+    {
+      "source": "nvidia",
+      "id": "black-forest-labs/flux_2-klein-4b",
+      "name": "flux.2-klein-4b",
+      "metadataSources": [
+        "api.ngc.nvidia.com/v2/endpoints/qc69jvmznzxy/flux_2-klein-4b",
+        "api.ngc.nvidia.com/v2/search/catalog/resources/ENDPOINT"
+      ]
+    },
+    {
+      "source": "nvidia",
+      "id": "cadence/fidelity",
+      "name": "fidelity",
+      "metadataSources": [
+        "api.ngc.nvidia.com/v2/endpoints/qc69jvmznzxy/fidelity",
+        "api.ngc.nvidia.com/v2/search/catalog/resources/ENDPOINT"
+      ]
+    },
+    {
+      "source": "nvidia",
+      "id": "cadence/spectre-x",
+      "name": "spectre-x",
+      "metadataSources": [
+        "api.ngc.nvidia.com/v2/endpoints/qc69jvmznzxy/spectre-x",
+        "api.ngc.nvidia.com/v2/search/catalog/resources/ENDPOINT"
+      ]
+    },
+    {
+      "source": "nvidia",
+      "id": "colabfold/msa-search",
+      "name": "msa-search",
+      "metadataSources": [
+        "api.ngc.nvidia.com/v2/endpoints/qc69jvmznzxy/msa-search",
+        "api.ngc.nvidia.com/v2/search/catalog/resources/ENDPOINT"
+      ]
+    },
+    {
+      "source": "nvidia",
+      "id": "deepmind/alphafold2",
+      "name": "alphafold2",
+      "metadataSources": [
+        "api.ngc.nvidia.com/v2/endpoints/qc69jvmznzxy/alphafold2",
+        "api.ngc.nvidia.com/v2/search/catalog/resources/ENDPOINT"
+      ]
+    },
+    {
+      "source": "nvidia",
+      "id": "deepmind/alphafold2-multimer",
+      "name": "alphafold2-multimer",
+      "metadataSources": [
+        "api.ngc.nvidia.com/v2/endpoints/qc69jvmznzxy/alphafold2-multimer",
+        "api.ngc.nvidia.com/v2/search/catalog/resources/ENDPOINT"
+      ]
+    },
+    {
+      "source": "nvidia",
+      "id": "deepseek-ai/deepseek-v4-flash-0731",
+      "name": "deepseek-v4-flash-0731",
+      "contextLength": 1000000,
+      "metadataSources": [
+        "api.ngc.nvidia.com/v2/endpoints/qc69jvmznzxy/deepseek-v4-flash-0731",
+        "api.ngc.nvidia.com/v2/search/catalog/resources/ENDPOINT"
+      ]
+    },
+    {
+      "source": "nvidia",
+      "id": "deepseek-ai/deepseek-v4-pro-0813",
+      "name": "deepseek-v4-pro-0813",
+      "contextLength": 1000000,
+      "metadataSources": [
+        "api.ngc.nvidia.com/v2/endpoints/qc69jvmznzxy/deepseek-v4-pro-0813",
+        "api.ngc.nvidia.com/v2/search/catalog/resources/ENDPOINT"
+      ]
+    },
+    {
+      "source": "nvidia",
+      "id": "google/diffusiongemma-26b-a4b-it",
+      "name": "diffusiongemma-26b-a4b-it",
+      "contextLength": 262144,
+      "metadataSources": [
+        "api.ngc.nvidia.com/v2/endpoints/qc69jvmznzxy/diffusiongemma-26b-a4b-it",
+        "api.ngc.nvidia.com/v2/search/catalog/resources/ENDPOINT"
+      ]
+    },
+    {
+      "source": "nvidia",
+      "id": "google/gemma-4-31b-it",
+      "name": "gemma-4-31b-it",
+      "contextLength": 256000,
+      "metadataSources": [
+        "api.ngc.nvidia.com/v2/endpoints/qc69jvmznzxy/gemma-4-31b-it",
+        "api.ngc.nvidia.com/v2/search/catalog/resources/ENDPOINT"
+      ]
+    },
+    {
+      "source": "nvidia",
+      "id": "google/google-paligemma",
+      "name": "paligemma",
+      "metadataSources": [
+        "api.ngc.nvidia.com/v2/endpoints/qc69jvmznzxy/google-paligemma",
+        "api.ngc.nvidia.com/v2/search/catalog/resources/ENDPOINT"
+      ]
+    },
+    {
+      "source": "nvidia",
+      "id": "ipd/proteinmpnn",
+      "name": "proteinmpnn",
+      "metadataSources": [
+        "api.ngc.nvidia.com/v2/endpoints/qc69jvmznzxy/proteinmpnn",
+        "api.ngc.nvidia.com/v2/search/catalog/resources/ENDPOINT"
+      ]
+    },
+    {
+      "source": "nvidia",
+      "id": "ipd/rfdiffusion",
+      "name": "rfdiffusion",
+      "metadataSources": [
+        "api.ngc.nvidia.com/v2/endpoints/qc69jvmznzxy/rfdiffusion",
+        "api.ngc.nvidia.com/v2/search/catalog/resources/ENDPOINT"
+      ]
+    },
+    {
+      "source": "nvidia",
+      "id": "meta/llama-3.2-11b-vision-instruct",
+      "name": "llama-3.2-11b-vision-instruct",
+      "metadataSources": [
+        "api.ngc.nvidia.com/v2/endpoints/qc69jvmznzxy/llama-3.2-11b-vision-instruct",
+        "api.ngc.nvidia.com/v2/search/catalog/resources/ENDPOINT"
+      ]
+    },
+    {
+      "source": "nvidia",
+      "id": "meta/llama-3.2-90b-vision-instruct",
+      "name": "llama-3.2-90b-vision-instruct",
+      "metadataSources": [
+        "api.ngc.nvidia.com/v2/endpoints/qc69jvmznzxy/llama-3.2-90b-vision-instruct",
+        "api.ngc.nvidia.com/v2/search/catalog/resources/ENDPOINT"
+      ]
+    },
+    {
+      "source": "nvidia",
+      "id": "meta/llama-guard-4-12b",
+      "name": "llama-guard-4-12b",
+      "metadataSources": [
+        "api.ngc.nvidia.com/v2/endpoints/qc69jvmznzxy/llama-guard-4-12b",
+        "api.ngc.nvidia.com/v2/search/catalog/resources/ENDPOINT"
+      ]
+    },
+    {
+      "source": "nvidia",
+      "id": "meta/muse-glimmer-30b",
+      "name": "muse-glimmer-30b",
+      "contextLength": 131072,
+      "metadataSources": [
+        "api.ngc.nvidia.com/v2/endpoints/qc69jvmznzxy/muse-glimmer-30b",
+        "api.ngc.nvidia.com/v2/search/catalog/resources/ENDPOINT"
+      ]
+    },
+    {
+      "source": "nvidia",
+      "id": "microsoft/trellis",
+      "name": "TRELLIS",
+      "metadataSources": [
+        "api.ngc.nvidia.com/v2/endpoints/qc69jvmznzxy/trellis",
+        "api.ngc.nvidia.com/v2/search/catalog/resources/ENDPOINT"
+      ]
+    },
+    {
+      "source": "nvidia",
+      "id": "minimaxai/minimax-m3",
+      "name": "minimax-m3",
+      "contextLength": 1000000,
+      "metadataSources": [
+        "api.ngc.nvidia.com/v2/endpoints/qc69jvmznzxy/minimax-m3",
+        "api.ngc.nvidia.com/v2/search/catalog/resources/ENDPOINT"
+      ]
+    },
+    {
+      "source": "nvidia",
+      "id": "mistralai/mistral-nemotron",
+      "name": "mistral-nemotron",
+      "contextLength": 128000,
+      "metadataSources": [
+        "api.ngc.nvidia.com/v2/endpoints/qc69jvmznzxy/mistral-nemotron",
+        "api.ngc.nvidia.com/v2/search/catalog/resources/ENDPOINT"
+      ]
+    },
+    {
+      "source": "nvidia",
+      "id": "mit/boltz2",
+      "name": "Boltz-2",
+      "metadataSources": [
+        "api.ngc.nvidia.com/v2/endpoints/qc69jvmznzxy/boltz2",
+        "api.ngc.nvidia.com/v2/search/catalog/resources/ENDPOINT"
+      ]
+    },
+    {
+      "source": "nvidia",
+      "id": "mit/diffdock",
+      "name": "diffdock",
+      "metadataSources": [
+        "api.ngc.nvidia.com/v2/endpoints/qc69jvmznzxy/diffdock",
+        "api.ngc.nvidia.com/v2/search/catalog/resources/ENDPOINT"
+      ]
+    },
+    {
+      "source": "nvidia",
+      "id": "moonshotai/kimi-k3",
+      "name": "kimi-k3",
+      "contextLength": 1048576,
+      "metadataSources": [
+        "api.ngc.nvidia.com/v2/endpoints/qc69jvmznzxy/kimi-k3",
+        "api.ngc.nvidia.com/v2/search/catalog/resources/ENDPOINT"
+      ]
+    },
+    {
+      "source": "nvidia",
+      "id": "nvidia/active-speaker-detection",
+      "name": "Active Speaker Detection",
+      "metadataSources": [
+        "api.ngc.nvidia.com/v2/endpoints/qc69jvmznzxy/active-speaker-detection",
+        "api.ngc.nvidia.com/v2/search/catalog/resources/ENDPOINT"
+      ]
+    },
+    {
+      "source": "nvidia",
+      "id": "nvidia/bevformer",
+      "name": "bevformer",
+      "metadataSources": [
+        "api.ngc.nvidia.com/v2/endpoints/qc69jvmznzxy/bevformer",
+        "api.ngc.nvidia.com/v2/search/catalog/resources/ENDPOINT"
+      ]
+    },
+    {
+      "source": "nvidia",
+      "id": "nvidia/bnr",
+      "name": "Background Noise Removal",
+      "metadataSources": [
+        "api.ngc.nvidia.com/v2/endpoints/qc69jvmznzxy/bnr",
+        "api.ngc.nvidia.com/v2/search/catalog/resources/ENDPOINT"
+      ]
+    },
+    {
+      "source": "nvidia",
+      "id": "nvidia/canary-1b-asr",
+      "name": "canary-1b-asr",
+      "metadataSources": [
+        "api.ngc.nvidia.com/v2/endpoints/qc69jvmznzxy/canary-1b-asr",
+        "api.ngc.nvidia.com/v2/search/catalog/resources/ENDPOINT"
+      ]
+    },
+    {
+      "source": "nvidia",
+      "id": "nvidia/conformer-ctc-asr",
+      "name": "conformer-ctc-asr",
+      "metadataSources": [
+        "api.ngc.nvidia.com/v2/endpoints/qc69jvmznzxy/conformer-ctc-asr",
+        "api.ngc.nvidia.com/v2/search/catalog/resources/ENDPOINT"
+      ]
+    },
+    {
+      "source": "nvidia",
+      "id": "nvidia/cosmos-transfer1-7b",
+      "name": "cosmos-transfer1-7b",
+      "metadataSources": [
+        "api.ngc.nvidia.com/v2/endpoints/qc69jvmznzxy/cosmos-transfer1-7b",
+        "api.ngc.nvidia.com/v2/search/catalog/resources/ENDPOINT"
+      ]
+    },
+    {
+      "source": "nvidia",
+      "id": "nvidia/cosmos-transfer2_5-2b",
+      "name": "cosmos-transfer2.5-2b",
+      "metadataSources": [
+        "api.ngc.nvidia.com/v2/endpoints/qc69jvmznzxy/cosmos-transfer2_5-2b",
+        "api.ngc.nvidia.com/v2/search/catalog/resources/ENDPOINT"
+      ]
+    },
+    {
+      "source": "nvidia",
+      "id": "nvidia/cosmos3-nano",
+      "name": "cosmos3-nano",
+      "metadataSources": [
+        "api.ngc.nvidia.com/v2/endpoints/qc69jvmznzxy/cosmos3-nano",
+        "api.ngc.nvidia.com/v2/search/catalog/resources/ENDPOINT"
+      ]
+    },
+    {
+      "source": "nvidia",
+      "id": "nvidia/cosmos3-nano-reasoner",
+      "name": "cosmos3-nano-reasoner",
+      "metadataSources": [
+        "api.ngc.nvidia.com/v2/endpoints/qc69jvmznzxy/cosmos3-nano-reasoner",
+        "api.ngc.nvidia.com/v2/search/catalog/resources/ENDPOINT"
+      ]
+    },
+    {
+      "source": "nvidia",
+      "id": "nvidia/eyecontact",
+      "name": "eyecontact",
+      "metadataSources": [
+        "api.ngc.nvidia.com/v2/endpoints/qc69jvmznzxy/eyecontact",
+        "api.ngc.nvidia.com/v2/search/catalog/resources/ENDPOINT"
+      ]
+    },
+    {
+      "source": "nvidia",
+      "id": "nvidia/fourcastnet",
+      "name": "fourcastnet",
+      "metadataSources": [
+        "api.ngc.nvidia.com/v2/endpoints/qc69jvmznzxy/fourcastnet",
+        "api.ngc.nvidia.com/v2/search/catalog/resources/ENDPOINT"
+      ]
+    },
+    {
+      "source": "nvidia",
+      "id": "nvidia/genmol-generate",
+      "name": "genmol",
+      "metadataSources": [
+        "api.ngc.nvidia.com/v2/endpoints/qc69jvmznzxy/genmol-generate",
+        "api.ngc.nvidia.com/v2/search/catalog/resources/ENDPOINT"
+      ]
+    },
+    {
+      "source": "nvidia",
+      "id": "nvidia/ising-calibration-1-35b-a3b",
+      "name": "ising-calibration-1-35b-a3b",
+      "contextLength": 262000,
+      "metadataSources": [
+        "api.ngc.nvidia.com/v2/endpoints/qc69jvmznzxy/ising-calibration-1-35b-a3b",
+        "api.ngc.nvidia.com/v2/search/catalog/resources/ENDPOINT",
+        "build.nvidia.com/nvidia/ising-calibration-1-35b-a3b/modelcard"
+      ]
+    },
+    {
+      "source": "nvidia",
+      "id": "nvidia/ising-calibration-1.5-31b",
+      "name": "ising-calibration-1.5-31b",
+      "metadataSources": [
+        "api.ngc.nvidia.com/v2/endpoints/qc69jvmznzxy/ising-calibration-1.5-31b",
+        "api.ngc.nvidia.com/v2/search/catalog/resources/ENDPOINT"
+      ]
+    },
+    {
+      "source": "nvidia",
+      "id": "nvidia/lipsync",
+      "name": "LipSync",
+      "metadataSources": [
+        "api.ngc.nvidia.com/v2/endpoints/qc69jvmznzxy/lipsync",
+        "api.ngc.nvidia.com/v2/search/catalog/resources/ENDPOINT"
+      ]
+    },
+    {
+      "source": "nvidia",
+      "id": "nvidia/llama-3_1-nemoguard-8b-content-safety",
+      "name": "llama-3.1-nemoguard-8b-content-safety",
+      "metadataSources": [
+        "api.ngc.nvidia.com/v2/endpoints/qc69jvmznzxy/llama-3_1-nemoguard-8b-content-safety",
+        "api.ngc.nvidia.com/v2/search/catalog/resources/ENDPOINT"
+      ]
+    },
+    {
+      "source": "nvidia",
+      "id": "nvidia/llama-3_1-nemoguard-8b-topic-control",
+      "name": "llama-3.1-nemoguard-8b-topic-control",
+      "metadataSources": [
+        "api.ngc.nvidia.com/v2/endpoints/qc69jvmznzxy/llama-3_1-nemoguard-8b-topic-control",
+        "api.ngc.nvidia.com/v2/search/catalog/resources/ENDPOINT"
+      ]
+    },
+    {
+      "source": "nvidia",
+      "id": "nvidia/llama-3_1-nemotron-safety-guard-8b-v3",
+      "name": "llama-3.1-nemotron-safety-guard-8b-v3",
+      "contextLength": 8000,
+      "metadataSources": [
+        "api.ngc.nvidia.com/v2/endpoints/qc69jvmznzxy/llama-3_1-nemotron-safety-guard-8b-v3",
+        "api.ngc.nvidia.com/v2/search/catalog/resources/ENDPOINT"
+      ]
+    },
+    {
+      "source": "nvidia",
+      "id": "nvidia/llama-nemotron-embed-vl-1b-v2",
+      "name": "llama-nemotron-embed-vl-1b-v2",
+      "contextLength": 8192,
+      "metadataSources": [
+        "api.ngc.nvidia.com/v2/endpoints/qc69jvmznzxy/llama-nemotron-embed-vl-1b-v2",
+        "api.ngc.nvidia.com/v2/search/catalog/resources/ENDPOINT"
+      ]
+    },
+    {
+      "source": "nvidia",
+      "id": "nvidia/llama-nemotron-rerank-vl-1b-v2",
+      "name": "llama-nemotron-rerank-vl-1b-v2",
+      "contextLength": 10240,
+      "metadataSources": [
+        "api.ngc.nvidia.com/v2/endpoints/qc69jvmznzxy/llama-nemotron-rerank-vl-1b-v2",
+        "api.ngc.nvidia.com/v2/search/catalog/resources/ENDPOINT"
+      ]
+    },
+    {
+      "source": "nvidia",
+      "id": "nvidia/magpie-tts-multilingual",
+      "name": "magpie-tts-multilingual",
+      "metadataSources": [
+        "api.ngc.nvidia.com/v2/endpoints/qc69jvmznzxy/magpie-tts-multilingual",
+        "api.ngc.nvidia.com/v2/search/catalog/resources/ENDPOINT"
+      ]
+    },
+    {
+      "source": "nvidia",
+      "id": "nvidia/magpie-tts-zeroshot",
+      "name": "magpie-tts-zeroshot",
+      "metadataSources": [
+        "api.ngc.nvidia.com/v2/endpoints/qc69jvmznzxy/magpie-tts-zeroshot",
+        "api.ngc.nvidia.com/v2/search/catalog/resources/ENDPOINT"
+      ]
+    },
+    {
+      "source": "nvidia",
+      "id": "nvidia/megatron-1b-nmt",
+      "name": "megatron-1b-nmt",
+      "metadataSources": [
+        "api.ngc.nvidia.com/v2/endpoints/qc69jvmznzxy/megatron-1b-nmt",
+        "api.ngc.nvidia.com/v2/search/catalog/resources/ENDPOINT"
+      ]
+    },
+    {
+      "source": "nvidia",
+      "id": "nvidia/molmim-generate",
+      "name": "molmim",
+      "metadataSources": [
+        "api.ngc.nvidia.com/v2/endpoints/qc69jvmznzxy/molmim-generate",
+        "api.ngc.nvidia.com/v2/search/catalog/resources/ENDPOINT"
+      ]
+    },
+    {
+      "source": "nvidia",
+      "id": "nvidia/nemoguard-jailbreak-detect",
+      "name": "nemoguard-jailbreak-detect",
+      "metadataSources": [
+        "api.ngc.nvidia.com/v2/endpoints/qc69jvmznzxy/nemoguard-jailbreak-detect",
+        "api.ngc.nvidia.com/v2/search/catalog/resources/ENDPOINT"
+      ]
+    },
+    {
+      "source": "nvidia",
+      "id": "nvidia/nemoretriever-ocr",
+      "name": "nemoretriever-ocr",
+      "metadataSources": [
+        "api.ngc.nvidia.com/v2/endpoints/qc69jvmznzxy/nemoretriever-ocr",
+        "api.ngc.nvidia.com/v2/search/catalog/resources/ENDPOINT"
+      ]
+    },
+    {
+      "source": "nvidia",
+      "id": "nvidia/nemotron-3-embed-1b",
+      "name": "nemotron-3-embed-1b",
+      "metadataSources": [
+        "api.ngc.nvidia.com/v2/endpoints/qc69jvmznzxy/nemotron-3-embed-1b",
+        "api.ngc.nvidia.com/v2/search/catalog/resources/ENDPOINT"
+      ]
+    },
+    {
+      "source": "nvidia",
+      "id": "nvidia/nemotron-3-nano-omni-30b-a3b-reasoning",
+      "name": "nemotron-3-nano-omni-30b-a3b-reasoning",
+      "contextLength": 256000,
+      "metadataSources": [
+        "api.ngc.nvidia.com/v2/endpoints/qc69jvmznzxy/nemotron-3-nano-omni-30b-a3b-reasoning",
+        "api.ngc.nvidia.com/v2/search/catalog/resources/ENDPOINT"
+      ]
+    },
+    {
+      "source": "nvidia",
+      "id": "nvidia/nemotron-3-super-120b-a12b",
+      "name": "nemotron-3-super-120b-a12b",
+      "contextLength": 1000000,
+      "metadataSources": [
+        "api.ngc.nvidia.com/v2/endpoints/qc69jvmznzxy/nemotron-3-super-120b-a12b",
+        "api.ngc.nvidia.com/v2/search/catalog/resources/ENDPOINT"
+      ]
+    },
+    {
+      "source": "nvidia",
+      "id": "nvidia/nemotron-3-ultra-550b-a55b",
+      "name": "nemotron-3-ultra-550b-a55b",
+      "contextLength": 1000000,
+      "metadataSources": [
+        "api.ngc.nvidia.com/v2/endpoints/qc69jvmznzxy/nemotron-3-ultra-550b-a55b",
+        "api.ngc.nvidia.com/v2/search/catalog/resources/ENDPOINT"
+      ]
+    },
+    {
+      "source": "nvidia",
+      "id": "nvidia/nemotron-3.5-content-safety",
+      "name": "nemotron-3.5-content-safety",
+      "contextLength": 128000,
+      "metadataSources": [
+        "api.ngc.nvidia.com/v2/endpoints/qc69jvmznzxy/nemotron-3.5-content-safety",
+        "api.ngc.nvidia.com/v2/search/catalog/resources/ENDPOINT"
+      ]
+    },
+    {
+      "source": "nvidia",
+      "id": "nvidia/nemotron-3.5-lightning-30b-a3b",
+      "name": "nemotron-3.5-lightning-30b-a3b",
+      "contextLength": 1000000,
+      "metadataSources": [
+        "api.ngc.nvidia.com/v2/endpoints/qc69jvmznzxy/nemotron-3.5-lightning-30b-a3b",
+        "api.ngc.nvidia.com/v2/search/catalog/resources/ENDPOINT"
+      ]
+    },
+    {
+      "source": "nvidia",
+      "id": "nvidia/nemotron-asr-streaming",
+      "name": "nemotron-asr-streaming",
+      "metadataSources": [
+        "api.ngc.nvidia.com/v2/endpoints/qc69jvmznzxy/nemotron-asr-streaming",
+        "api.ngc.nvidia.com/v2/search/catalog/resources/ENDPOINT"
+      ]
+    },
+    {
+      "source": "nvidia",
+      "id": "nvidia/nemotron-graphic-elements-v1",
+      "name": "nemotron-graphic-elements-v1",
+      "metadataSources": [
+        "api.ngc.nvidia.com/v2/endpoints/qc69jvmznzxy/nemotron-graphic-elements-v1",
+        "api.ngc.nvidia.com/v2/search/catalog/resources/ENDPOINT"
+      ]
+    },
+    {
+      "source": "nvidia",
+      "id": "nvidia/nemotron-ocr-v1",
+      "name": "nemotron-ocr-v1",
+      "metadataSources": [
+        "api.ngc.nvidia.com/v2/endpoints/qc69jvmznzxy/nemotron-ocr-v1",
+        "api.ngc.nvidia.com/v2/search/catalog/resources/ENDPOINT"
+      ]
+    },
+    {
+      "source": "nvidia",
+      "id": "nvidia/nemotron-ocr-v2",
+      "name": "nemotron-ocr-v2",
+      "metadataSources": [
+        "api.ngc.nvidia.com/v2/endpoints/qc69jvmznzxy/nemotron-ocr-v2",
+        "api.ngc.nvidia.com/v2/search/catalog/resources/ENDPOINT"
+      ]
+    },
+    {
+      "source": "nvidia",
+      "id": "nvidia/nemotron-page-elements-v3",
+      "name": "nemotron-page-elements-v3",
+      "metadataSources": [
+        "api.ngc.nvidia.com/v2/endpoints/qc69jvmznzxy/nemotron-page-elements-v3",
+        "api.ngc.nvidia.com/v2/search/catalog/resources/ENDPOINT"
+      ]
+    },
+    {
+      "source": "nvidia",
+      "id": "nvidia/nemotron-parse",
+      "name": "nemotron-parse",
+      "metadataSources": [
+        "api.ngc.nvidia.com/v2/endpoints/qc69jvmznzxy/nemotron-parse",
+        "api.ngc.nvidia.com/v2/search/catalog/resources/ENDPOINT"
+      ]
+    },
+    {
+      "source": "nvidia",
+      "id": "nvidia/nemotron-table-structure-v1",
+      "name": "nemotron-table-structure-v1",
+      "metadataSources": [
+        "api.ngc.nvidia.com/v2/endpoints/qc69jvmznzxy/nemotron-table-structure-v1",
+        "api.ngc.nvidia.com/v2/search/catalog/resources/ENDPOINT"
+      ]
+    },
+    {
+      "source": "nvidia",
+      "id": "nvidia/nemotron-voicechat",
+      "name": "nemotron-voicechat",
+      "contextLength": 2000000,
+      "metadataSources": [
+        "api.ngc.nvidia.com/v2/endpoints/qc69jvmznzxy/nemotron-voicechat",
+        "api.ngc.nvidia.com/v2/search/catalog/resources/ENDPOINT",
+        "build.nvidia.com/nvidia/nemotron-voicechat/modelcard"
+      ]
+    },
+    {
+      "source": "nvidia",
+      "id": "nvidia/nvidia-cuopt",
+      "name": "cuopt",
+      "metadataSources": [
+        "api.ngc.nvidia.com/v2/endpoints/qc69jvmznzxy/nvidia-cuopt",
+        "api.ngc.nvidia.com/v2/search/catalog/resources/ENDPOINT"
+      ]
+    },
+    {
+      "source": "nvidia",
+      "id": "nvidia/parakeet-1_1b-rnnt-multilingual-asr",
+      "name": "parakeet-1.1b-rnnt-multilingual-asr",
+      "metadataSources": [
+        "api.ngc.nvidia.com/v2/endpoints/qc69jvmznzxy/parakeet-1_1b-rnnt-multilingual-asr",
+        "api.ngc.nvidia.com/v2/search/catalog/resources/ENDPOINT"
+      ]
+    },
+    {
+      "source": "nvidia",
+      "id": "nvidia/parakeet-ctc-0_6b-asr",
+      "name": "parakeet-ctc-0.6b-asr",
+      "metadataSources": [
+        "api.ngc.nvidia.com/v2/endpoints/qc69jvmznzxy/parakeet-ctc-0_6b-asr",
+        "api.ngc.nvidia.com/v2/search/catalog/resources/ENDPOINT"
+      ]
+    },
+    {
+      "source": "nvidia",
+      "id": "nvidia/parakeet-ctc-0_6b-es",
+      "name": "parakeet-ctc-0.6b-es",
+      "metadataSources": [
+        "api.ngc.nvidia.com/v2/endpoints/qc69jvmznzxy/parakeet-ctc-0_6b-es",
+        "api.ngc.nvidia.com/v2/search/catalog/resources/ENDPOINT"
+      ]
+    },
+    {
+      "source": "nvidia",
+      "id": "nvidia/parakeet-ctc-0_6b-vi",
+      "name": "parakeet-ctc-0.6b-vi",
+      "metadataSources": [
+        "api.ngc.nvidia.com/v2/endpoints/qc69jvmznzxy/parakeet-ctc-0_6b-vi",
+        "api.ngc.nvidia.com/v2/search/catalog/resources/ENDPOINT"
+      ]
+    },
+    {
+      "source": "nvidia",
+      "id": "nvidia/parakeet-ctc-0_6b-zh-cn",
+      "name": "parakeet-ctc-0.6b-zh-cn",
+      "metadataSources": [
+        "api.ngc.nvidia.com/v2/endpoints/qc69jvmznzxy/parakeet-ctc-0_6b-zh-cn",
+        "api.ngc.nvidia.com/v2/search/catalog/resources/ENDPOINT"
+      ]
+    },
+    {
+      "source": "nvidia",
+      "id": "nvidia/parakeet-ctc-0_6b-zh-tw",
+      "name": "parakeet-ctc-0.6b-zh-tw",
+      "metadataSources": [
+        "api.ngc.nvidia.com/v2/endpoints/qc69jvmznzxy/parakeet-ctc-0_6b-zh-tw",
+        "api.ngc.nvidia.com/v2/search/catalog/resources/ENDPOINT"
+      ]
+    },
+    {
+      "source": "nvidia",
+      "id": "nvidia/parakeet-ctc-1_1b-asr",
+      "name": "parakeet-ctc-1.1b-asr",
+      "metadataSources": [
+        "api.ngc.nvidia.com/v2/endpoints/qc69jvmznzxy/parakeet-ctc-1_1b-asr",
+        "api.ngc.nvidia.com/v2/search/catalog/resources/ENDPOINT"
+      ]
+    },
+    {
+      "source": "nvidia",
+      "id": "nvidia/parakeet-tdt-0_6b-v2",
+      "name": "parakeet-tdt-0.6b-v2",
+      "metadataSources": [
+        "api.ngc.nvidia.com/v2/endpoints/qc69jvmznzxy/parakeet-tdt-0_6b-v2",
+        "api.ngc.nvidia.com/v2/search/catalog/resources/ENDPOINT"
+      ]
+    },
+    {
+      "source": "nvidia",
+      "id": "nvidia/qwen-image-edit-nvpcb-ovsl2sl",
+      "name": "qwen-image-edit-nvpcb-ovsl2sl",
+      "metadataSources": [
+        "api.ngc.nvidia.com/v2/endpoints/qc69jvmznzxy/qwen-image-edit-nvpcb-ovsl2sl",
+        "api.ngc.nvidia.com/v2/search/catalog/resources/ENDPOINT"
+      ]
+    },
+    {
+      "source": "nvidia",
+      "id": "nvidia/relighting",
+      "name": "Relighting",
+      "metadataSources": [
+        "api.ngc.nvidia.com/v2/endpoints/qc69jvmznzxy/relighting",
+        "api.ngc.nvidia.com/v2/search/catalog/resources/ENDPOINT"
+      ]
+    },
+    {
+      "source": "nvidia",
+      "id": "nvidia/riva-translate-1_6b",
+      "name": "riva-translate-1.6b",
+      "metadataSources": [
+        "api.ngc.nvidia.com/v2/endpoints/qc69jvmznzxy/riva-translate-1_6b",
+        "api.ngc.nvidia.com/v2/search/catalog/resources/ENDPOINT"
+      ]
+    },
+    {
+      "source": "nvidia",
+      "id": "nvidia/riva-translate-4b-instruct-v1_1",
+      "name": "riva-translate-4b-instruct-v1_1",
+      "contextLength": 8000,
+      "metadataSources": [
+        "api.ngc.nvidia.com/v2/endpoints/qc69jvmznzxy/riva-translate-4b-instruct-v1_1",
+        "api.ngc.nvidia.com/v2/search/catalog/resources/ENDPOINT"
+      ]
+    },
+    {
+      "source": "nvidia",
+      "id": "nvidia/riva-translate-4b-instruct-v2",
+      "name": "riva-translate-4b-instruct-v2",
+      "contextLength": 8000,
+      "metadataSources": [
+        "api.ngc.nvidia.com/v2/endpoints/qc69jvmznzxy/riva-translate-4b-instruct-v2",
+        "api.ngc.nvidia.com/v2/search/catalog/resources/ENDPOINT"
+      ]
+    },
+    {
+      "source": "nvidia",
+      "id": "nvidia/sparsedrive",
+      "name": "sparsedrive",
+      "metadataSources": [
+        "api.ngc.nvidia.com/v2/endpoints/qc69jvmznzxy/sparsedrive",
+        "api.ngc.nvidia.com/v2/search/catalog/resources/ENDPOINT"
+      ]
+    },
+    {
+      "source": "nvidia",
+      "id": "nvidia/streampetr",
+      "name": "streampetr",
+      "metadataSources": [
+        "api.ngc.nvidia.com/v2/endpoints/qc69jvmznzxy/streampetr",
+        "api.ngc.nvidia.com/v2/search/catalog/resources/ENDPOINT"
+      ]
+    },
+    {
+      "source": "nvidia",
+      "id": "nvidia/studiovoice",
+      "name": "Studio Voice",
+      "metadataSources": [
+        "api.ngc.nvidia.com/v2/endpoints/qc69jvmznzxy/studiovoice",
+        "api.ngc.nvidia.com/v2/search/catalog/resources/ENDPOINT"
+      ]
+    },
+    {
+      "source": "nvidia",
+      "id": "nvidia/synthetic-video-detector",
+      "name": "synthetic-video-detector",
+      "metadataSources": [
+        "api.ngc.nvidia.com/v2/endpoints/qc69jvmznzxy/synthetic-video-detector",
+        "api.ngc.nvidia.com/v2/search/catalog/resources/ENDPOINT"
+      ]
+    },
+    {
+      "source": "nvidia",
+      "id": "nvidia/vsr",
+      "name": "Video Super Resolution NIM",
+      "metadataSources": [
+        "api.ngc.nvidia.com/v2/endpoints/qc69jvmznzxy/vsr",
+        "api.ngc.nvidia.com/v2/search/catalog/resources/ENDPOINT"
+      ]
+    },
+    {
+      "source": "nvidia",
+      "id": "openai/gpt-oss-20b",
+      "name": "gpt-oss-20b",
+      "contextLength": 128000,
+      "metadataSources": [
+        "api.ngc.nvidia.com/v2/endpoints/qc69jvmznzxy/gpt-oss-20b",
+        "api.ngc.nvidia.com/v2/search/catalog/resources/ENDPOINT"
+      ]
+    },
+    {
+      "source": "nvidia",
+      "id": "openai/whisper-large-v3",
+      "name": "whisper-large-v3",
+      "metadataSources": [
+        "api.ngc.nvidia.com/v2/endpoints/qc69jvmznzxy/whisper-large-v3",
+        "api.ngc.nvidia.com/v2/search/catalog/resources/ENDPOINT"
+      ]
+    },
+    {
+      "source": "nvidia",
+      "id": "openfold/openfold2",
+      "name": "openfold2",
+      "metadataSources": [
+        "api.ngc.nvidia.com/v2/endpoints/qc69jvmznzxy/openfold2",
+        "api.ngc.nvidia.com/v2/search/catalog/resources/ENDPOINT"
+      ]
+    },
+    {
+      "source": "nvidia",
+      "id": "openfold/openfold3",
+      "name": "openfold3",
+      "metadataSources": [
+        "api.ngc.nvidia.com/v2/endpoints/qc69jvmznzxy/openfold3",
+        "api.ngc.nvidia.com/v2/search/catalog/resources/ENDPOINT"
+      ]
+    },
+    {
+      "source": "nvidia",
+      "id": "poolside/laguna-xs-2.1",
+      "name": "laguna-xs-2.1",
+      "contextLength": 262144,
+      "metadataSources": [
+        "api.ngc.nvidia.com/v2/endpoints/qc69jvmznzxy/laguna-xs-2.1",
+        "api.ngc.nvidia.com/v2/search/catalog/resources/ENDPOINT"
+      ]
+    },
+    {
+      "source": "nvidia",
+      "id": "qwen/qwen-image",
+      "name": "qwen-image",
+      "metadataSources": [
+        "api.ngc.nvidia.com/v2/endpoints/qc69jvmznzxy/qwen-image",
+        "api.ngc.nvidia.com/v2/search/catalog/resources/ENDPOINT"
+      ]
+    },
+    {
+      "source": "nvidia",
+      "id": "qwen/qwen-image-edit",
+      "name": "qwen-image-edit",
+      "metadataSources": [
+        "api.ngc.nvidia.com/v2/endpoints/qc69jvmznzxy/qwen-image-edit",
+        "api.ngc.nvidia.com/v2/search/catalog/resources/ENDPOINT"
+      ]
+    },
+    {
+      "source": "nvidia",
+      "id": "resembleai/chatterbox-multilingual-tts",
+      "name": "chatterbox-multilingual-tts",
+      "metadataSources": [
+        "api.ngc.nvidia.com/v2/endpoints/qc69jvmznzxy/chatterbox-multilingual-tts",
+        "api.ngc.nvidia.com/v2/search/catalog/resources/ENDPOINT"
+      ]
+    },
+    {
+      "source": "nvidia",
+      "id": "siemens/star-ccm",
+      "name": "simcenter-star-ccm+",
+      "metadataSources": [
+        "api.ngc.nvidia.com/v2/endpoints/qc69jvmznzxy/star-ccm",
+        "api.ngc.nvidia.com/v2/search/catalog/resources/ENDPOINT"
+      ]
+    },
+    {
+      "source": "nvidia",
+      "id": "stabilityai/stable-diffusion-3_5-large",
+      "name": "stable-diffusion-3.5-large",
+      "metadataSources": [
+        "api.ngc.nvidia.com/v2/endpoints/qc69jvmznzxy/stable-diffusion-3_5-large",
+        "api.ngc.nvidia.com/v2/search/catalog/resources/ENDPOINT"
+      ]
+    },
+    {
+      "source": "nvidia",
+      "id": "wan-ai/wan2.2-animate-2-14b",
+      "name": "wan2.2-animate-2-14b",
+      "metadataSources": [
+        "api.ngc.nvidia.com/v2/endpoints/qc69jvmznzxy/wan2.2-animate-2-14b",
+        "api.ngc.nvidia.com/v2/search/catalog/resources/ENDPOINT"
+      ]
+    },
+    {
+      "source": "openrouter",
+      "id": "cohere/north-mini-code:free",
+      "name": "Cohere: North Mini Code (free)",
+      "contextLength": 256000,
+      "metadataSources": [
+        "openrouter.ai/api/v1/models"
+      ]
+    },
+    {
+      "source": "openrouter",
+      "id": "dots-studio/dots-3-note-preview:free",
+      "name": "Dots Studio: Dots3-Note Preview (free)",
+      "contextLength": 512000,
+      "metadataSources": [
+        "openrouter.ai/api/v1/models"
+      ]
+    },
+    {
+      "source": "openrouter",
+      "id": "google/gemma-4-26b-a4b-it:free",
+      "name": "Google: Gemma 4 26B A4B  (free)",
+      "contextLength": 262144,
+      "metadataSources": [
+        "openrouter.ai/api/v1/models"
+      ]
+    },
+    {
+      "source": "openrouter",
+      "id": "google/gemma-4-31b-it:free",
+      "name": "Google: Gemma 4 31B (free)",
+      "contextLength": 262144,
+      "metadataSources": [
+        "openrouter.ai/api/v1/models"
+      ]
+    },
+    {
+      "source": "openrouter",
+      "id": "google/lyria-3-clip-preview",
+      "name": "Google: Lyria 3 Clip Preview",
+      "contextLength": 1048576,
+      "metadataSources": [
+        "openrouter.ai/api/v1/models"
+      ]
+    },
+    {
+      "source": "openrouter",
+      "id": "google/lyria-3-pro-preview",
+      "name": "Google: Lyria 3 Pro Preview",
+      "contextLength": 1048576,
+      "metadataSources": [
+        "openrouter.ai/api/v1/models"
+      ]
+    },
+    {
+      "source": "openrouter",
+      "id": "inclusionai/ling-3.0-flash-fin:free",
+      "name": "inclusionAI: Ling 3.0 Flash Fin (free)",
+      "contextLength": 262144,
+      "metadataSources": [
+        "openrouter.ai/api/v1/models"
+      ]
+    },
+    {
+      "source": "openrouter",
+      "id": "inclusionai/ling-3.0-flash-sante:free",
+      "name": "inclusionAI: Ling 3.0 Flash Sante (free)",
+      "contextLength": 262144,
+      "metadataSources": [
+        "openrouter.ai/api/v1/models"
+      ]
+    },
+    {
+      "source": "openrouter",
+      "id": "liquid/lfm-2.5-2.6b:free",
+      "name": "LiquidAI: LFM2.5-2.6B (free)",
+      "contextLength": 65536,
+      "metadataSources": [
+        "openrouter.ai/api/v1/models"
+      ]
+    },
+    {
+      "source": "openrouter",
+      "id": "minimax/minimax-m2.7:free",
+      "name": "MiniMax: MiniMax M2.7 (free)",
+      "contextLength": 196608,
+      "metadataSources": [
+        "openrouter.ai/api/v1/models"
+      ]
+    },
+    {
+      "source": "openrouter",
+      "id": "minimax/minimax-m3:free",
+      "name": "MiniMax: MiniMax M3 (free)",
+      "contextLength": 1048576,
+      "metadataSources": [
+        "openrouter.ai/api/v1/models"
+      ]
+    },
+    {
+      "source": "openrouter",
+      "id": "nvidia/nemotron-3-nano-omni-30b-a3b-reasoning:free",
+      "name": "NVIDIA: Nemotron 3 Nano Omni (free)",
+      "contextLength": 256000,
+      "metadataSources": [
+        "openrouter.ai/api/v1/models"
+      ]
+    },
+    {
+      "source": "openrouter",
+      "id": "nvidia/nemotron-3-super-120b-a12b:free",
+      "name": "NVIDIA: Nemotron 3 Super (free)",
+      "contextLength": 262144,
+      "metadataSources": [
+        "openrouter.ai/api/v1/models"
+      ]
+    },
+    {
+      "source": "openrouter",
+      "id": "nvidia/nemotron-3-ultra-550b-a55b:free",
+      "name": "NVIDIA: Nemotron 3 Ultra (free)",
+      "contextLength": 1000000,
+      "metadataSources": [
+        "openrouter.ai/api/v1/models"
+      ]
+    },
+    {
+      "source": "openrouter",
+      "id": "nvidia/nemotron-3.5-content-safety:free",
+      "name": "NVIDIA: Nemotron 3.5 Content Safety (free)",
+      "contextLength": 128000,
+      "metadataSources": [
+        "openrouter.ai/api/v1/models"
+      ]
+    },
+    {
+      "source": "openrouter",
+      "id": "nvidia/nemotron-3.5-lightning:free",
+      "name": "NVIDIA: Nemotron 3.5 Lightning (free)",
+      "contextLength": 1000000,
+      "metadataSources": [
+        "openrouter.ai/api/v1/models"
+      ]
+    },
+    {
+      "source": "openrouter",
+      "id": "openrouter/free",
+      "name": "Free Models Router",
+      "contextLength": 200000,
+      "metadataSources": [
+        "openrouter.ai/api/v1/models"
+      ]
+    },
+    {
+      "source": "openrouter",
+      "id": "poolside/laguna-s-2.1:free",
+      "name": "Poolside: Laguna S 2.1 (free)",
+      "contextLength": 262144,
+      "metadataSources": [
+        "openrouter.ai/api/v1/models"
+      ]
+    },
+    {
+      "source": "openrouter",
+      "id": "poolside/laguna-xs-2.1:free",
+      "name": "Poolside: Laguna XS 2.1 (free)",
+      "contextLength": 262144,
+      "metadataSources": [
+        "openrouter.ai/api/v1/models"
+      ]
+    },
+    {
+      "source": "openrouter",
+      "id": "thinkingmachines/inkling-small:free",
+      "name": "Thinking Machines: Inkling Small (free)",
+      "contextLength": 1048576,
+      "metadataSources": [
+        "openrouter.ai/api/v1/models"
+      ]
+    },
+    {
+      "source": "openrouter",
+      "id": "thinkingmachines/inkling:free",
+      "name": "Thinking Machines: Inkling (free)",
+      "contextLength": 1048576,
+      "metadataSources": [
+        "openrouter.ai/api/v1/models"
+      ]
+    },
+    {
+      "source": "openrouter",
+      "id": "z-ai/glm-5.2:free",
+      "name": "Z.ai: GLM 5.2 (free)",
+      "contextLength": 256000,
+      "metadataSources": [
+        "openrouter.ai/api/v1/models"
+      ]
+    }
+  ]
+}
